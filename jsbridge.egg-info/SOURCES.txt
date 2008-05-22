@@ -2,6 +2,7 @@ setup.py
 jsbridge/__init__.py
 jsbridge/global_settings.py
 jsbridge/jsobjects.py
+jsbridge/mozlab-current-0.1.9.2008050521.xpi
 jsbridge/network.py
 jsbridge.egg-info/PKG-INFO
 jsbridge.egg-info/SOURCES.txt

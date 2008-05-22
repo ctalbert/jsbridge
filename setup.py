@@ -58,7 +58,7 @@ setup(name=PACKAGE_NAME,
         """,
       platforms =['Any'],
       install_requires = ['simplejson',
-                          'mozrunner'
+                          'mozrunner',
                           ],
       classifiers=['Development Status :: 4 - Beta',
                    'Environment :: Console',
