@@ -37,6 +37,7 @@
 
 import sys
 import optparse
+import socket
 from time import sleep
 
 import mozrunner
@@ -62,7 +63,7 @@ def code_shell(locals_dict):
     import code
     code.interact(locals_dict)    
     
-def start_from_settings(settings):
+def start_from_settings(settings, timeout=10):
     """Start the jsbridge from a setings dict"""
     if settings['JSBRIDGE_START_FIREFOX']:
         if not settings.has_key('JSBRIDGE_REPL_HOST'):
@@ -73,7 +74,16 @@ def start_from_settings(settings):
         moz.start()
         print 'Started ', moz.command
         settings['moz'] = moz
-        sleep(3)
+        ttl = 0
+        while ttl < timeout:
+            sleep(.25)
+            try:
+                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                s.connect((host, port))
+                s.close()
+                break
+            except socket.error:
+                pass
     else:
         if not settings.has_key('JSBRIDGE_REPL_HOST'):
             settings['JSBRIDGE_REPL_HOST'] =  'localhost:4242'

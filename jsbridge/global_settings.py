@@ -4,8 +4,11 @@ import os
 MOZILLA_PLUGINS = [os.path.join(os.path.abspath(os.path.dirname(__file__)), 
                    'mozlab-current-0.1.9.2008050521.xpi')]
 
-# MOZILLA_PREFERENCES = {'extensions.mozlab.mozrepl.port': 24242,
-#                        'extensions.mozlab.mozrepl.autoStart': True}
+basedir = os.path.abspath(os.path.dirname(__file__))
+
+MOZILLA_PREFERENCES = {
+    'extensions.mozlab.mozrepl.initUrl': 'file://'+urllib.pathname2url(os.path.join(basedir, 'customrepl.js')),
+    }
 
 MOZILLA_CMD_ARGS = ['-repl', '24242', '-jsconsole']
 
