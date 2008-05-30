@@ -1,5 +1,6 @@
 from mozrunner.global_settings import *
 import os
+import urllib
 
 MOZILLA_PLUGINS = [os.path.join(os.path.abspath(os.path.dirname(__file__)), 
                    'mozlab-current-0.1.9.2008050521.xpi')]
