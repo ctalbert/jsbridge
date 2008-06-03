@@ -175,6 +175,7 @@ def create_network(hostname, port):
     back_channel = ReplBackChannel(hostname, port)
     repl = Repl(hostname, port, back_channel=back_channel)
     from threading import Thread
+    global thread
     thread = Thread(target=asyncore.loop)
     getattr(thread, 'setDaemon', lambda x : None)(True)
     thread.start()
