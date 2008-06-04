@@ -35,11 +35,11 @@
 // 
 // ***** END LICENSE BLOCK *****
 
-function range(begin, end) {
-  for (let i = begin; i < end; ++i) {
-    yield i;
-  }
-}
+var window = Cc['@mozilla.org/appshell/window-mediator;1']
+    .getService(Ci.nsIWindowMediator)
+    .getMostRecentWindow('');
+    
+if (JSBridgeController == undefined) {
 
 var nativeJSON = Cc["@mozilla.org/dom/json;1"]
     .createInstance(Components.interfaces.nsIJSON);
@@ -47,18 +47,18 @@ var nativeJSON = Cc["@mozilla.org/dom/json;1"]
 var uuidgen = Cc["@mozilla.org/uuid-generator;1"]
     .getService(Components.interfaces.nsIUUIDGenerator);
 
-var window = Cc['@mozilla.org/appshell/window-mediator;1']
-    .getService(Ci.nsIWindowMediator)
-    .getMostRecentWindow('');
+function range(begin, end) {
+  for (let i = begin; i < end; ++i) {
+    yield i;
+  }
+}
 
-var jsbridgeEvents = {};
-jsbridgeEvents.methodDispatches = {};
+JSBridgeController = {"methodDispatches":{}};
+window.JSBridgeController = JSBridgeController;
 
-var ranDispath = false;
-
-function wrapDispatch(uuid) {
+JSBridgeController.wrapDispatch = function (uuid) {
     runDispatch = true;
-    var dispatch = jsbridgeEvents.methodDispatches[uuid];
+    var dispatch = JSBridgeController.methodDispatches[uuid];
     dispatch.repl.print("running wrapDispatch");
     dispatch.result = eval(dispatch.method + "(" + 
         ["dispatch.args["+i+"]" for each (i in range(0, dispatch.args.length))]
@@ -67,16 +67,16 @@ function wrapDispatch(uuid) {
     repl.onOutput(nativeJSON.encode(dispatch));
 }
 
-function jsbridgeRun(method, args, repl, uuid) {
+JSBridgeController.run = function (method, args, repl, uuid) {
     if (uuid == undefined) {
         uuid = uuidgen.generateUUID().toString();
         }
-    jsbridgeEvents.methodDispatches[uuid] = {"method":method, "args":args, "repl":repl};
-    window.setTimeout("wrapDispatch(" + uuid + ")", 1 );
+    JSBridgeController.methodDispatches[uuid] = {"method":method, "args":args, "repl":repl};
+    window.setTimeout("JSBridgeController.wrapDispatch('"+uuid+"')", 1 );
     return uuid;
     }
 
-function jsbridgeInspect(obj) {
+JSBridgeController.inspect = function (obj) {
 // adapted from ddumpObject() at
 // http://lxr.mozilla.org/mozilla/source/extensions/sroaming/resources/content/transfer/utility.js
 
@@ -142,5 +142,6 @@ function jsbridgeInspect(obj) {
     return objDesc;
 }
 
+}
 // inspect.doc =
 //     "Lists members of a given object.";
