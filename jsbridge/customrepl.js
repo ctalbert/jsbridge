@@ -39,7 +39,7 @@ var window = Cc['@mozilla.org/appshell/window-mediator;1']
     .getService(Ci.nsIWindowMediator)
     .getMostRecentWindow('');
     
-if (JSBridgeController == undefined) {
+if (window.JSBridgeController == undefined) {
 
 var nativeJSON = Cc["@mozilla.org/dom/json;1"]
     .createInstance(Components.interfaces.nsIJSON);
