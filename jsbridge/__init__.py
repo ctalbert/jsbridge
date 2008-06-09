@@ -126,6 +126,7 @@ def main():
             settings[override] = getattr(options, opt)
             
     if settings['MOZILLA_BINARY'].endswith('.app'):
+        apppath = settings['MOZILLA_BINARY']
         settings['MOZILLA_BINARY'] = os.path.join(apppath, 'Contents', 'MacOS', 'firefox-bin')
         settings['MOZILLA_DEFAULT_PROFILE'] = os.path.join(apppath, 'Contents', 'MacOS', 'defaults', 'profile')
         
