@@ -38,6 +38,7 @@
 import sys
 import optparse
 import socket
+import os
 from time import sleep
 
 import mozrunner
@@ -123,12 +124,16 @@ def main():
     for opt, override in option_overrides:
         if getattr(options, opt, None) is not None:
             settings[override] = getattr(options, opt)
-
+            
+    if settings['MOZILLA_BINARY'].endswith('.app'):
+        settings['MOZILLA_BINARY'] = os.path.join(apppath, 'Contents', 'MacOS', 'firefox-bin')
+        settings['MOZILLA_DEFAULT_PROFILE'] = os.path.join(apppath, 'Contents', 'MacOS', 'defaults', 'profile')
+        
     back_channel, repl, bridge = start_from_settings(settings)
     if settings.has_key('moz'):
         # We want the moz object in the local ns or the shell to access
         moz = settings['moz']
-    
+        
     if sys.platform != 'win32':
         sys.argv = sys.argv[:1]
         ipython_shell(locals())
@@ -137,5 +142,3 @@ def main():
         
     if settings.has_key('moz'):
         moz.stop()
-        
-        
