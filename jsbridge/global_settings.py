@@ -4,6 +4,7 @@ import urllib
 
 MOZILLA_PLUGINS = [os.path.join(os.path.abspath(os.path.dirname(__file__)), 
                    'mozlab-current-0.1.9.2008050521.xpi'),
+                   os.path.join(os.path.dirname(os.path.abspath(os.path.dirname(__file__))), 'jsbridge-controller'),
                    ]
 
 basedir = os.path.abspath(os.path.dirname(__file__))
