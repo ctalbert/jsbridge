@@ -127,8 +127,8 @@ def main():
             
     if settings['MOZILLA_BINARY'].endswith('.app'):
         apppath = settings['MOZILLA_BINARY']
-        settings['MOZILLA_BINARY'] = os.path.join(apppath, 'Contents', 'MacOS', 'firefox-bin')
-        settings['MOZILLA_DEFAULT_PROFILE'] = os.path.join(apppath, 'Contents', 'MacOS', 'defaults', 'profile')
+        settings['MOZILLA_BINARY'] = os.path.abspath(os.path.join(apppath, 'Contents', 'MacOS', 'firefox-bin'))
+        settings['MOZILLA_DEFAULT_PROFILE'] = os.path.abspath(os.path.join(apppath, 'Contents', 'MacOS', 'defaults', 'profile'))
         
     back_channel, repl, bridge = start_from_settings(settings)
     if settings.has_key('moz'):
