@@ -57,21 +57,42 @@ JSBridgeController = {"methodDispatches":{}};
 window.JSBridgeController = JSBridgeController;
 
 JSBridgeController.wrapDispatch = function (uuid) {
-    runDispatch = true;
     var dispatch = JSBridgeController.methodDispatches[uuid];
-    dispatch.repl.print("running wrapDispatch");
-    dispatch.result = eval(dispatch.method + "(" + 
-        ["dispatch.args["+i+"]" for each (i in range(0, dispatch.args.length))]
-        .join(', ') + ")");
-    dispatch.callbackType = "functionCall";
-    repl.onOutput(nativeJSON.encode(dispatch));
+    dispatch.repl.print("test1")
+    if ( dispatch.method != undefined ) {
+        dispatch.callbackType = "functionCall";
+        dispatch.exec_string = dispatch.method + "(" + 
+            ["dispatch.args["+i+"]" for each (i in range(0, dispatch.args.length))]
+            .join(', ') + ")";
+        }
+    else {
+        dispatch.callbackType = "execString";
+    }
+    try {
+        dispatch.result = eval(dispatch.exec_string);
+        dispatch.exception = false;
+    } catch(e) {
+        dispatch.result = e;
+        dispatch.exception = true;
+    }
+    dispatch.repl.onOutput(nativeJSON.encode(dispatch));
 }
 
-JSBridgeController.run = function (method, args, repl, uuid) {
+JSBridgeController.run_method = function (method, args, repl, uuid) {
     if (uuid == undefined) {
         uuid = uuidgen.generateUUID().toString();
         }
     JSBridgeController.methodDispatches[uuid] = {"method":method, "args":args, "repl":repl};
+    window.setTimeout("JSBridgeController.wrapDispatch('"+uuid+"')", 1 );
+    return uuid;
+    }
+
+JSBridgeController.run = function (exec_string, repl, uuid) {
+    repl.print("test " + exec_string)
+    if (uuid == undefined) {
+        uuid = uuidgen.generateUUID().toString();
+        }
+    JSBridgeController.methodDispatches[uuid] = {"exec_string":exec_string, "repl":repl};
     window.setTimeout("JSBridgeController.wrapDispatch('"+uuid+"')", 1 );
     return uuid;
     }
