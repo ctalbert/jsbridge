@@ -10,7 +10,7 @@
                    em:id="{03befa10-366e-11dd-b34a-001b631b9b78}"
                    em:version="0.1.14"
                    em:type="2"
-                   em:name="Mozilla Js bridge controller">
+                   em:name="jsbridge">
     <em:targetApplication RDF:resource="rdf:#$QJqvE"/>
   </RDF:Description>
 </RDF:RDF>
