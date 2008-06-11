@@ -35,69 +35,9 @@
 // 
 // ***** END LICENSE BLOCK *****
 
-var window = Cc['@mozilla.org/appshell/window-mediator;1']
-    .getService(Ci.nsIWindowMediator)
-    .getMostRecentWindow('');
-    
-if (window.JSBridgeController == undefined) {
+var EXPORTED_SYMBOLS = ["inspect"];
 
-var nativeJSON = Cc["@mozilla.org/dom/json;1"]
-    .createInstance(Components.interfaces.nsIJSON);
-
-var uuidgen = Cc["@mozilla.org/uuid-generator;1"]
-    .getService(Components.interfaces.nsIUUIDGenerator);
-
-function range(begin, end) {
-  for (let i = begin; i < end; ++i) {
-    yield i;
-  }
-}
-
-JSBridgeController = {"methodDispatches":{}};
-window.JSBridgeController = JSBridgeController;
-
-JSBridgeController.wrapDispatch = function (uuid) {
-    var dispatch = JSBridgeController.methodDispatches[uuid];
-    dispatch.repl.print("test1")
-    if ( dispatch.method != undefined ) {
-        dispatch.callbackType = "functionCall";
-        dispatch.exec_string = dispatch.method + "(" + 
-            ["dispatch.args["+i+"]" for each (i in range(0, dispatch.args.length))]
-            .join(', ') + ")";
-        }
-    else {
-        dispatch.callbackType = "execString";
-    }
-    try {
-        dispatch.result = eval(dispatch.exec_string);
-        dispatch.exception = false;
-    } catch(e) {
-        dispatch.result = e;
-        dispatch.exception = true;
-    }
-    dispatch.repl.onOutput(nativeJSON.encode(dispatch));
-}
-
-JSBridgeController.run_method = function (method, args, repl, uuid) {
-    if (uuid == undefined) {
-        uuid = uuidgen.generateUUID().toString();
-        }
-    JSBridgeController.methodDispatches[uuid] = {"method":method, "args":args, "repl":repl};
-    window.setTimeout("JSBridgeController.wrapDispatch('"+uuid+"')", 1 );
-    return uuid;
-    }
-
-JSBridgeController.run = function (exec_string, repl, uuid) {
-    repl.print("test " + exec_string)
-    if (uuid == undefined) {
-        uuid = uuidgen.generateUUID().toString();
-        }
-    JSBridgeController.methodDispatches[uuid] = {"exec_string":exec_string, "repl":repl};
-    window.setTimeout("JSBridgeController.wrapDispatch('"+uuid+"')", 1 );
-    return uuid;
-    }
-
-JSBridgeController.inspect = function (obj) {
+function inspect(obj) {
 // adapted from ddumpObject() at
 // http://lxr.mozilla.org/mozilla/source/extensions/sroaming/resources/content/transfer/utility.js
 
@@ -125,19 +65,17 @@ JSBridgeController.inspect = function (obj) {
                     propDesc.ptype = "array";
                     // this.print(name + "." + prop + "=[probably array, length "
                     //            + obj[prop].length + "]");
-                    }
-                else {
+                } else {
                     propDesc.ptype = "object";
                     // this.print(name + "." + prop + "=[" + typeof(obj[prop]) + "]");
                 }
-            }
-            else if (typeof(obj[prop]) == "function")
+            } else if (typeof(obj[prop]) == "function") {
                 propDesc.ptype = "function";
                 // this.print(name + "." + prop + "=[function]");
-            else {
+            } else {
                 propDesc.ptype = typeof(obj[prop]);
                 propDesc.pvalue = obj[prop];
-                }
+            }
                 // this.print(name + "." + prop + "=" + obj[prop]);
             
             propDesc.doc = obj[prop].doc;
@@ -156,13 +94,10 @@ JSBridgeController.inspect = function (obj) {
         }
         objDesc.props.push(propDesc);
     }
-    if(!i)
+    if(!i) {
         propDesc.result = false;
         propDesc.debug = name + "is empty";
         // this.print(name + " is empty");   
+    }
     return objDesc;
 }
-
-}
-// inspect.doc =
-//     "Lists members of a given object.";
