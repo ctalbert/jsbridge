@@ -38,12 +38,18 @@
 import simplejson
 import uuid 
 
-def parse_inspection(body):
-    """Parse the repl.inspect() text to a dict and figure out javascript object type."""
-    obj_type = body[1:body.find('>')]
-    parsed = dict( [ l.replace('<'+obj_type+'>.', '').split('=', 1) for l in body.splitlines() if '=' in l ] )
-    parsed['__doc__'] = parsed.get('doc')
-    return parsed, obj_type
+# def parse_inspection(body):
+#     """Parse the repl.inspect() text to a dict and figure out javascript object type."""
+#     obj_type = body[1:body.find('>')]
+#     parsed = dict( [ l.replace('<'+obj_type+'>.', '').split('=', 1) for l in body.splitlines() if '=' in l ] )
+#     parsed['__doc__'] = parsed.get('doc')
+#     return parsed, obj_type
+
+def parse_inspection(obj):
+    obj_type = obj["ptype"]
+    props = obj["props"]
+    print str(props)
+    return props, obj_type
 
 def guess_transform(repl, basename, name, value):
     """Guess the JSObject which should be returned for a given value."""
@@ -177,7 +183,7 @@ class JSObject(object):
         """Load the full set of lazy loaded jsobjects for this object."""
         if attributes_dict is None:
             self._loaded_ = None
-            inspection = self._repl_.run('.inspect('+self._name_+')')
+            inspection = self._repl_.run('Components.utils.import("resource://jsbridge/modules/inspection.js").inspect('+self._name_+')')
             inspect_dict, obj_type = parse_inspection(inspection)
             self_dict = create_jsobject_dict(self._repl_, self._name_, inspect_dict)
         else:

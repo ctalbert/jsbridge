@@ -44,11 +44,11 @@ function inspect(obj) {
     name = typeof(obj);
 
     var i = 0;
-    objDesc = {"name":name};
+    objDesc = {"ptype":name};
     objDesc.props = [];
     for(var prop in obj) {
         var propDesc = {"name":prop};
-        if(obj instanceof Ci.nsIDOMWindow &&
+        if(obj instanceof Components.interfaces.nsIDOMWindow &&
            (prop == 'java' || prop == 'sun' || prop == 'Packages')) {
             propDesc.result = false;
             propDesc.ptype = "object";
