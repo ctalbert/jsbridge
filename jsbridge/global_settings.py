@@ -39,13 +39,14 @@ from mozrunner.global_settings import *
 import os
 import urllib
 
-trunk_path = os.path.dirname(os.path.abspath(os.path.dirname(__file__)))
+module_path = os.path.abspath(os.path.dirname(__file__))
 
-MOZILLA_PLUGINS = [os.path.join(trunk_path, 'mozlab-current-0.1.9.2008050521.xpi'),
-                   os.path.join(trunk_path, 'extension'),
-                   os.path.join(trunk_path, 'chromelist-trunk-r13.xpi'),
-                   os.path.join(trunk_path, 'chromebug-trunk-r234.xpi'),
-                   os.path.join(trunk_path, 'firebug1.2-branch-r741.xpi'),
+MOZILLA_PLUGINS = [os.path.join(module_path, 'extension'),
+                   os.path.join(module_path, 'xpi', 'mozlab-current-0.1.9.2008050521.xpi'),
+                   os.path.join(module_path, 'xpi', 'venkman-0.9.87.3.xpi'),
+                   # os.path.join(trunk_path, 'chromelist-trunk-r13.xpi'),
+                   # os.path.join(trunk_path, 'chromebug-trunk-r234.xpi'),
+                   # os.path.join(trunk_path, 'firebug1.2-branch-r741.xpi'),
                    ]
 
 basedir = os.path.abspath(os.path.dirname(__file__))
