@@ -39,19 +39,25 @@ from mozrunner.global_settings import *
 import os
 import urllib
 
-MOZILLA_PLUGINS = [os.path.join(os.path.dirname(os.path.abspath(os.path.dirname(__file__))), 
-                   'mozlab-current-0.1.9.2008050521.xpi'),
-                   os.path.join(os.path.dirname(os.path.abspath(os.path.dirname(__file__))), 
-                   'extension'),
+trunk_path = os.path.dirname(os.path.abspath(os.path.dirname(__file__)))
+
+MOZILLA_PLUGINS = [os.path.join(trunk_path, 'mozlab-current-0.1.9.2008050521.xpi'),
+                   os.path.join(trunk_path, 'extension'),
+                   os.path.join(trunk_path, 'chromelist-trunk-r13.xpi'),
+                   os.path.join(trunk_path, 'chromebug-trunk-r234.xpi'),
+                   os.path.join(trunk_path, 'firebug1.2-branch-r741.xpi'),
                    ]
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
 MOZILLA_PREFERENCES = {
-    'extensions.mozlab.mozrepl.initUrl': 'file://'+urllib.pathname2url(os.path.join(basedir, 'customrepl.js')),
+    # 'extensions.mozlab.mozrepl.initUrl': 'file://'+urllib.pathname2url(os.path.join(basedir, 'customrepl.js')),
+    'extensions.chromebug.openalways' : True,
+    'extensions.chromebug.showIntroduction' : False,
+    'general.warnOnAboutConfig' : False,
     }
 
-MOZILLA_CMD_ARGS = ['-repl', '24242', '-jsconsole']
+MOZILLA_CMD_ARGS = ['-repl', '24242', '-jsconsole',]# '-chrome' 'chrome://chromebug/content/chromebug.xul', '-p', 'chromebug']
 
 MOZILLA_CREATE_NEW_PROFILE = True
 

@@ -54,9 +54,11 @@ function range(begin, end) {
 
 var JSBridgeController = {"methodDispatches":{}};
 
+JSBridgeController.registry = {}
+
 JSBridgeController.wrapDispatch = function (uuid) {
     var dispatch = JSBridgeController.methodDispatches[uuid];
-    dispatch.repl.print("test1")
+    // dispatch.repl.print("test1")
     if ( dispatch.method != undefined ) {
         dispatch.callbackType = "functionCall";
         dispatch.exec_string = dispatch.method + "(" + 
@@ -73,6 +75,10 @@ JSBridgeController.wrapDispatch = function (uuid) {
         dispatch.result = e;
         dispatch.exception = true;
     }
+    if (dispatch.result == undefined) {
+        dispatch.result = null;
+    }
+    
     dispatch.repl.onOutput(nativeJSON.encode(dispatch));
 }
 
@@ -80,18 +86,30 @@ JSBridgeController.run_method = function (method, args, repl, uuid) {
     if (uuid == undefined) {
         uuid = uuidgen.generateUUID().toString();
         }
-    JSBridgeController.methodDispatches[uuid] = {"method":method, "args":args, "repl":repl};
-    window.setTimeout("JSBridgeController.wrapDispatch('"+uuid+"')", 1 );
+    JSBridgeController.methodDispatches[uuid] = {"method":method, "args":args, "repl":repl, "uuid":uuid};
+    
+    var window = Components.classes["@mozilla.org/appshell/appShellService;1"]
+             .getService(Components.interfaces.nsIAppShellService)
+             .hiddenDOMWindow;
+     window.setTimeout("Components.utils.import('resource://jsbridge/modules/controller.js').JSBridgeController.wrapDispatch('"+uuid+"')", 1 );
     return uuid;
 }
 
 JSBridgeController.run = function (exec_string, repl, uuid) {
-    repl.print("test " + exec_string)
+    // repl.print("test " + exec_string)
     if (uuid == undefined) {
         uuid = uuidgen.generateUUID().toString();
         }
-    JSBridgeController.methodDispatches[uuid] = {"exec_string":exec_string, "repl":repl};
-    window.setTimeout("JSBridgeController.wrapDispatch('"+uuid+"')", 1 );
+    JSBridgeController.methodDispatches[uuid] = {"exec_string":exec_string, "repl":repl, "uuid":uuid};
+
+    var window = Components.classes["@mozilla.org/appshell/appShellService;1"]
+             .getService(Components.interfaces.nsIAppShellService)
+             .hiddenDOMWindow;
+    window.setTimeout("Components.utils.import('resource://jsbridge/modules/controller.js').JSBridgeController.wrapDispatch('"+uuid+"')", 1 );
+
     return uuid;
 }
+
+
+// Application.events.addListener("onOpenWindow", function (w) { w.JSBridgeController = JSBridgeController; });
 

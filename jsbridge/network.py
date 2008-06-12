@@ -97,14 +97,14 @@ class Repl(Telnet):
         Telnet.__init__(self, *args, **kwargs)
         self.back_channel = back_channel
         sleep(.25)
-        self.send('if ( this.jsbridgeRegistry == undefined ) { this.jsbridgeRegistry = {} }')
 
     def repl_send(self, exec_string, callback_uuid=None):
         if uuid is None:
             callback_uuid = str(uuid.uuid1())
-        call = ( 'JSBridgeController.run('+simplejson.dumps(exec_string)+', '
-                                        +self.back_channel.repl_name+', '
-                                        +simplejson.dumps(callback_uuid)+');\n' 
+        call = ( 'Components.utils.import("resource://jsbridge/modules/controller.js").JSBridgeController.run('
+            +simplejson.dumps(exec_string)+', '
+            +self.back_channel.repl_name+', '
+            +simplejson.dumps(callback_uuid)+');\n' 
                 )
         self.send(call)
         return callback_uuid
@@ -178,7 +178,7 @@ class ReplBackChannel(Telnet):
 
     def process_read(self, data):
         """Parse out json objects and fire callbacks."""
-        #print data
+        print 'data', data
         self.sbuffer += data.replace('\n'+self.repl_prompt+'\n', '').replace('\n'+self.repl_prompt, '')
         self.reading = True
         self.parsing = True
@@ -191,10 +191,11 @@ class ReplBackChannel(Telnet):
                 #print 'after scrapping#', self.sbuffer, "#"
             # Try to get a json object from the data stream    
             try:
-                obj, index = simplejson.raw_decode(self.sbuffer)
+                obj, index = decoder.raw_decode(self.sbuffer)
                 print 'passed'
-            except:
+            except Exception, e:
                 self.parsing = False
+                print 'failed ::'+self.sbuffer 
             # If we got an object fire the callback infra    
             if self.parsing:
                 self.fire_callbacks(obj)

@@ -177,7 +177,7 @@ class JSObject(object):
         """Load the full set of lazy loaded jsobjects for this object."""
         if attributes_dict is None:
             self._loaded_ = None
-            inspection = self._repl_.raw_run(self._repl_.back_channel.repl_name+'.inspect('+self._name_+')')
+            inspection = self._repl_.run('.inspect('+self._name_+')')
             inspect_dict, obj_type = parse_inspection(inspection)
             self_dict = create_jsobject_dict(self._repl_, self._name_, inspect_dict)
         else:
@@ -195,7 +195,7 @@ class JSFunction(JSObject):
     def __call__(self, *args, **kwargs):
         assert len(kwargs) is 0
         fuuid, call = get_function_call(self._name_, args)
-        name = 'this.jsbridgeRegistry["' + fuuid + '"]'
+        name = 'Components.utils.import("resource://jsbridge/modules/controller.js").JSBridgeController.registry["' + fuuid + '"]'
         call = name + ' = ' + call
         self._repl_.run(call)
         value = self._repl_.run(self._repl_.back_channel.repl_name +'.print(' + name + ')')
