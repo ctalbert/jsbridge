@@ -52,7 +52,7 @@ settings_env = 'JSBRIDGE_SETTINGS_FILE'
 
 def start_js_bridge(hostname='127.0.0.1', port=4242):
     back_channel, repl = create_network(hostname, port)
-    bridge = JSObject(repl, 'this')
+    bridge = JSObject(repl, "Components.classes['@mozilla.org/appshell/window-mediator;1'].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow('')")
     return back_channel, repl, bridge
     
 def ipython_shell(locals_dict):
@@ -137,9 +137,13 @@ def main():
         
     if sys.platform != 'win32':
         sys.argv = sys.argv[:1]
-        ipython_shell(locals())
+        ipython_shell({'bridge':bridge})#locals())
     else:
-        code_shell(locals())
-        
+        code_shell({'bridge':bridge})
+    
+    # There is a bug in some of the traceback code IPython keeps around that causes a strange error here.
+    # The workaround is to remove it from sys.modules
+    sys.modules.pop('IPython', None)
+    
     if settings.has_key('moz'):
         moz.stop()

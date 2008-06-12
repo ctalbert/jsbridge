@@ -37,6 +37,7 @@
 
 import simplejson
 import uuid 
+import types
 
 # def parse_inspection(body):
 #     """Parse the repl.inspect() text to a dict and figure out javascript object type."""
@@ -48,37 +49,38 @@ import uuid
 def parse_inspection(obj):
     obj_type = obj["ptype"]
     props = obj["props"]
-    print str(props)
     return props, obj_type
 
-def guess_transform(repl, basename, name, value):
-    """Guess the JSObject which should be returned for a given value."""
-    if value is None:
-        return None
-        
-    fullname = basename + '.' + name
-    
-    if value == '[object]':
-        return JSObject(repl, fullname)
-    if value == '[function]':
-        return JSFunction(repl, fullname)
-    if value.startswith('['):
-        return JSObject(repl, fullname)
+# def guess_transform(repl, basename, name, value):
+#     """Guess the JSObject which should be returned for a given value."""
+#     if value is None:
+#         return None
+#         
+#     fullname = basename + '.' + name
+#     
+#     if value == '[object]':
+#         return JSObject(repl, fullname)
+#     if value == '[function]':
+#         return JSFunction(repl, fullname)
+#     if value.startswith('['):
+#         return JSObject(repl, fullname)
+# 
+#     # Brute Force object creation
+#     try:
+#         val = simplejson.loads(value)
+#         return init_jsobject(py_type_cases[type(val)], repl, fullname, value)
+#     except: pass
+#     
+#     return init_jsobject(JSString, repl, fullname, value)
 
-    # Brute Force object creation
-    try:
-        val = simplejson.loads(value)
-        return init_jsobject(py_type_cases[type(val)], repl, fullname, value)
-    except: pass
-    
-    return init_jsobject(JSString, repl, fullname, value)
-
-def create_jsobject_dict(repl, basename, inspect_dict):
+def create_jsobject_dict(repl, basename, props):
     """Create a dict of jsobjects for a given inspect dict. Guesses transform for each object."""
-    return_dict = {}
-    for k, v in inspect_dict.items():
-        return_dict[k] = guess_transform(repl, basename, k, v)
-    return return_dict
+    prop_dict = {}
+    for prop in props:
+        if prop['result'] is True:
+            prop_dict[prop['name']] = create_jsobject(repl, basename+'.'+prop['name'], prop.get('pvalue', None), prop['ptype'])
+
+    return prop_dict
 
 def guess_serialization(arg):
     """Guess the serialization of a given Python object to a javascript textual representaion (JSON)"""
@@ -87,11 +89,15 @@ def guess_serialization(arg):
     else:
         return simplejson.dumps(arg)
 
-def create_jsobject(repl, fullname, value):
+def create_jsobject(repl, fullname, value, obj_type=None):
     """Create a single JSObject for named object on other side of the bridge.
     
     Handles various initization cases for different JSObjects."""
-    obj_type = repl.run('typeof('+fullname+')')
+    if obj_type is None:
+        obj_type = repl.run('typeof('+fullname+')')
+        
+    if value is True or value is False:
+        return value
 
     if js_type_cases.has_key(obj_type):
         cls, needs_init = js_type_cases[obj_type]
@@ -243,6 +249,7 @@ class JSUndefined(JSObject):
 
 js_type_cases = {'function'  :(JSFunction, False,), 
                   'object'   :(JSObject, False,), 
+                  'array'    :(JSObject, False,),
                   'string'   :(JSString, True,), 
                   'number'   :(JSFloat, True,),
                   'undefined':(JSUndefined, False,),
