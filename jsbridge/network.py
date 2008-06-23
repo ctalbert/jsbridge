@@ -178,6 +178,7 @@ class ReplBackChannel(Telnet):
 
     def process_read(self, data):
         """Parse out json objects and fire callbacks."""
+        #print data
         self.sbuffer += data.replace('\n'+self.repl_prompt+'\n', '').replace('\n'+self.repl_prompt, '')
         self.reading = True
         self.parsing = True
@@ -191,10 +192,10 @@ class ReplBackChannel(Telnet):
             # Try to get a json object from the data stream    
             try:
                 obj, index = decoder.raw_decode(self.sbuffer)
-                # print 'passed'
+                #print 'passed'
             except Exception, e:
                 self.parsing = False
-                # print 'failed ::'+self.sbuffer 
+                #print 'failed', e.message 
             # If we got an object fire the callback infra    
             if self.parsing:
                 self.fire_callbacks(obj)

@@ -37,7 +37,6 @@
 
 import simplejson
 import uuid 
-import types
 
 # def parse_inspection(body):
 #     """Parse the repl.inspect() text to a dict and figure out javascript object type."""
@@ -243,9 +242,8 @@ class JSUndefined(JSObject):
             return True
         else:
             return False
-    
+
     __nonzero__ = lambda self: False
-    
 
 js_type_cases = {'function'  :(JSFunction, False,), 
                   'object'   :(JSObject, False,), 

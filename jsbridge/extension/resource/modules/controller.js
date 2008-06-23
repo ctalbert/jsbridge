@@ -42,6 +42,8 @@ var EXPORTED_SYMBOLS = ["JSBridgeController"];
 
 var nativeJSON = Components.classes["@mozilla.org/dom/json;1"]
     .createInstance(Components.interfaces.nsIJSON);
+    
+var json2 = Components.utils.import("resource://jsbridge/modules/json2.js")
 
 var uuidgen = Components.classes["@mozilla.org/uuid-generator;1"]
     .getService(Components.interfaces.nsIUUIDGenerator);
@@ -78,8 +80,11 @@ JSBridgeController.wrapDispatch = function (uuid) {
     if (dispatch.result == undefined) {
         dispatch.result = null;
     }
-    
-    dispatch.repl.onOutput(nativeJSON.encode(dispatch));
+
+    repl = dispatch.repl
+    delete dispatch.repl
+    // repl.onOutput(nativeJSON.encode(dispatch));
+    repl.onOutput(json2.JSON.stringify(dispatch));
 }
 
 JSBridgeController.run_method = function (method, args, repl, uuid) {
