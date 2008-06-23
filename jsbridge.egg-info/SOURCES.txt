@@ -2,7 +2,6 @@ setup.py
 jsbridge/__init__.py
 jsbridge/global_settings.py
 jsbridge/jsobjects.py
-jsbridge/mozlab-current-0.1.9.2008050521.xpi
 jsbridge/network.py
 jsbridge.egg-info/PKG-INFO
 jsbridge.egg-info/SOURCES.txt
@@ -10,3 +9,10 @@ jsbridge.egg-info/dependency_links.txt
 jsbridge.egg-info/entry_points.txt
 jsbridge.egg-info/requires.txt
 jsbridge.egg-info/top_level.txt
+jsbridge/extension/chrome.manifest
+jsbridge/extension/install.rdf
+jsbridge/extension/resource/modules/controller.js
+jsbridge/extension/resource/modules/inspection.js
+jsbridge/extension/resource/modules/json2.js
+jsbridge/xpi/mozlab-current-0.1.9.2008050521.xpi
+jsbridge/xpi/venkman-0.9.87.3.xpi
