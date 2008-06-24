@@ -45,6 +45,8 @@ var nativeJSON = Components.classes["@mozilla.org/dom/json;1"]
     
 var json2 = Components.utils.import("resource://jsbridge/modules/json2.js")
 
+var jsonEncode = json2.JSON.stringify;
+
 var uuidgen = Components.classes["@mozilla.org/uuid-generator;1"]
     .getService(Components.interfaces.nsIUUIDGenerator);
 
@@ -56,19 +58,75 @@ function range(begin, end) {
 
 var JSBridgeController = {"methodDispatches":{}};
 
-JSBridgeController.registry = {}
+JSBridgeController.registry = {};
+JSBridgeController.eventsByUUID = {};
+JSBridgeController.eventsByType = {};
+JSBridgeController.callbackRegistryByUUID = {};
+JSBridgeController.callbackRegistryByType = {};
+
+JSBridgeController.fireEvent = function (eventType, obj, uuid, repl) {
+    if (uuid == undefined) {
+        uuid = uuidgen.generateUUID().toString();
+        }
+    JSBridgeController.eventsByUUID[uuid] = {"eventType":eventType, "obj":obj};
+    if (JSBridgeController.eventsByType[eventType] == undefined) {
+        JSBridgeController.eventsByType[eventType] = [];
+    }
+    JSBridgeController.eventsByType[eventType].concat({"uuid":uuid, "obj":obj});
+    JSBridgeController.fireCallbacks(eventType, obj, uuid, repl);
+}
+
+JSBridgeController.fireCallbacks = function (eventType, obj, uuid, repl) {
+    // var x = {"eventType":eventType, "result":obj, "uuid":uuid};
+    if (JSBridgeController.callbackRegistryByUUID[uuid] != undefined) {
+        JSBridgeController.callbackRegistryByUUID[uuid](eventType, obj, uuid);
+    }
+    if (JSBridgeController.callbackRegistryByType[eventType] != undefined) {
+        for ( var i=0, len=JSBridgeController.callbackRegistryByType[eventType].length; i<len; ++i ){
+          JSBridgeController.callbackRegistryByType[eventType][i](eventType, obj, uuid);
+        }
+    }
+}
+
+JSBridgeController.addListener = function (eventType, callback) {
+    var listner = function (eventType, obj, uuid) { return callback(obj); }
+    
+    if (JSBridgeController.callbackRegistryByType[eventType] != undefined) {
+        JSBridgeController.callbackRegistryByType[eventType].concat(listener);
+    }
+    else {
+        JSBridgeController.callbackRegistryByType[eventType] = [listener];
+    }
+}
+
+JSBridgeController.addBridgeListener = function (eventType) {
+    var listener = function (eventType, obj, uuid) {
+        JSBridgeController.bridgeRepl.onOutput(jsonEncode({"eventType":eventType, "result":obj, "uuid":uuid}));
+    }
+    
+    if (JSBridgeController.callbackRegistryByType[eventType] != undefined) {
+        JSBridgeController.callbackRegistryByType[eventType].concat(listener);
+    }
+    else {
+        JSBridgeController.callbackRegistryByType[eventType] = [listener];
+    }
+} 
+
+JSBridgeController.setBridgeRepl = function (repl) {
+    JSBridgeController.bridgeRepl = repl;
+}
 
 JSBridgeController.wrapDispatch = function (uuid) {
     var dispatch = JSBridgeController.methodDispatches[uuid];
     // dispatch.repl.print("test1")
     if ( dispatch.method != undefined ) {
-        dispatch.callbackType = "functionCall";
+        eventType = "functionCall";
         dispatch.exec_string = dispatch.method + "(" + 
             ["dispatch.args["+i+"]" for each (i in range(0, dispatch.args.length))]
             .join(', ') + ")";
         }
     else {
-        dispatch.callbackType = "execString";
+        eventType = "execString";
     }
     try {
         dispatch.result = eval(dispatch.exec_string);
@@ -81,16 +139,25 @@ JSBridgeController.wrapDispatch = function (uuid) {
         dispatch.result = null;
     }
 
-    repl = dispatch.repl
-    delete dispatch.repl
+    repl = dispatch.repl;
+    uuid = dispatch.uuid;
+    delete dispatch.repl;
+    delete dispatch.uuid;
     // repl.onOutput(nativeJSON.encode(dispatch));
-    repl.onOutput(json2.JSON.stringify(dispatch));
+    // repl.onOutput(jsonEncode(dispatch));
+    JSBridgeController.fireEvent(eventType, dispatch, uuid, repl);
 }
 
 JSBridgeController.run_method = function (method, args, repl, uuid) {
     if (uuid == undefined) {
         uuid = uuidgen.generateUUID().toString();
         }
+        
+    var listener = function (eventType, obj, uuid) { 
+        repl.onOutput(jsonEncode({"eventType":eventType, "result":obj, "uuid":uuid}));
+    }
+
+    JSBridgeController.callbackRegistryByUUID[uuid] = listener;    
     JSBridgeController.methodDispatches[uuid] = {"method":method, "args":args, "repl":repl, "uuid":uuid};
     
     var window = Components.classes["@mozilla.org/appshell/appShellService;1"]
@@ -101,10 +168,15 @@ JSBridgeController.run_method = function (method, args, repl, uuid) {
 }
 
 JSBridgeController.run = function (exec_string, repl, uuid) {
-    // repl.print("test " + exec_string)
     if (uuid == undefined) {
         uuid = uuidgen.generateUUID().toString();
         }
+    
+    var listener = function (eventType, obj, auuid) { 
+        repl.onOutput(jsonEncode({"eventType":eventType, "result":obj, "uuid":auuid}));
+    }
+    
+    JSBridgeController.callbackRegistryByUUID[uuid] = listener;    
     JSBridgeController.methodDispatches[uuid] = {"exec_string":exec_string, "repl":repl, "uuid":uuid};
 
     var window = Components.classes["@mozilla.org/appshell/appShellService;1"]

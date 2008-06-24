@@ -118,10 +118,10 @@ class Repl(Telnet):
             sleep(.2)
         
         response = response[0]
-        if response['exception'] is True:
-            raise JavascriptException(response['result'])
+        if response['result']['exception'] is True:
+            raise JavascriptException(response['result']['result'])
         else:
-            return response['result']
+            return response['result']['result']
         
     # def print_run(self, exec_string):
     #     rprint = self.back_channel.repl_name + '.print('
@@ -201,7 +201,6 @@ class ReplBackChannel(Telnet):
                 self.fire_callbacks(obj)
                 self.sbuffer = self.sbuffer[index:]
 
-        
         # if self.current_raw_block is None:
         #     if '#!START_RAW_BLOCK::' not in data:
         #         self.trashes.append(data)
