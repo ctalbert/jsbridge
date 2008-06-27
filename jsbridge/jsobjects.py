@@ -38,39 +38,10 @@
 import simplejson
 import uuid 
 
-# def parse_inspection(body):
-#     """Parse the repl.inspect() text to a dict and figure out javascript object type."""
-#     obj_type = body[1:body.find('>')]
-#     parsed = dict( [ l.replace('<'+obj_type+'>.', '').split('=', 1) for l in body.splitlines() if '=' in l ] )
-#     parsed['__doc__'] = parsed.get('doc')
-#     return parsed, obj_type
-
 def parse_inspection(obj):
     obj_type = obj["ptype"]
     props = obj["props"]
     return props, obj_type
-
-# def guess_transform(repl, basename, name, value):
-#     """Guess the JSObject which should be returned for a given value."""
-#     if value is None:
-#         return None
-#         
-#     fullname = basename + '.' + name
-#     
-#     if value == '[object]':
-#         return JSObject(repl, fullname)
-#     if value == '[function]':
-#         return JSFunction(repl, fullname)
-#     if value.startswith('['):
-#         return JSObject(repl, fullname)
-# 
-#     # Brute Force object creation
-#     try:
-#         val = simplejson.loads(value)
-#         return init_jsobject(py_type_cases[type(val)], repl, fullname, value)
-#     except: pass
-#     
-#     return init_jsobject(JSString, repl, fullname, value)
 
 def create_jsobject_dict(repl, basename, props):
     """Create a dict of jsobjects for a given inspect dict. Guesses transform for each object."""

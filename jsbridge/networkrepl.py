@@ -57,12 +57,16 @@ class Telnet(object, asyncore.dispatcher):
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
         self.connect((host, port))
         self.buffer = ''
+        self.logger = logger
+
+    def __del__(self):
+        self.close()
 
     def handle_connect(self):
-        logger.debug('Connected '+self.host+' on port '+str(self.port))
+        self.logger.debug('Connected '+self.host+' on port '+str(self.port))
         
     def handle_close(self):
-        logger.debug('Closed '+self.host+' on port '+str(self.port))
+        self.logger.debug('Closed '+self.host+' on port '+str(self.port))
 
     def handle_expt(self): self.close() # connection failed, shutdown
     
@@ -78,6 +82,7 @@ class Telnet(object, asyncore.dispatcher):
         asyncore.dispatcher.send(self, b)
 
     def read_all(self):
+        import socket
         data = ''
         while 1:
             try:
@@ -126,12 +131,15 @@ class Repl(Telnet):
             return response['result']
         
 decoder = simplejson.JSONDecoder()
+
+back_channel_on_connect_events = []
         
 class ReplBackChannel(Telnet):
     trashes = []
     reading = False
     repl_name = None
     sbuffer = ''
+    events_list = []
 
     def read_callback(self, data):
         #print data
@@ -140,8 +148,16 @@ class ReplBackChannel(Telnet):
         self.repl_prompt = last_line
         self.send(
             "Components.utils.import('resource://jsbridge/modules/controller.js').JSBridgeController.addBridgeRepl("
-            +self.repl_name+")")
+            +self.repl_name+");\n")
         self.read_callback = self.process_read
+        for event in set(back_channel_on_connect_events):
+            self.add_bridge_listener(event)
+            
+    def add_bridge_listener(self, event):
+        if event not in self.events_list:
+            self.send(
+            "Components.utils.import('resource://jsbridge/modules/controller.js').JSBridgeController.addBridgeListener("+event+");\n"
+            )
         
     def fire_callbacks(self, obj):
         """Handle all callback fireing on json objects pulled from the data stream."""

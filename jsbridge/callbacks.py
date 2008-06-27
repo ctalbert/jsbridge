@@ -35,6 +35,8 @@
 # 
 # ***** END LICENSE BLOCK *****
 
+import networkrepl
+
 uuid_callback_index = {}
 event_callback_index = {}
 
@@ -42,7 +44,12 @@ def add_callback(callback, uuid=None, event=None):
     if uuid is not None:
         uuid_callback_index[uuid] = uuid_callback_index.get(uuid, []) + [callback]
     if event is not None:
-        event_callback_index[event] = event_callback_index.get(event, []) [callback]
+        event_callback_index[event] = event_callback_index.get(event, []) [callback]    
+        back_channel = getattr(networkrepl, 'back_channel', None)
+        if back_channel is not None:
+            back_channel.addBridgeListener(event)
+        else:
+            networkrepl.back_channel_on_connect_events.append(event)
     
 def fire_event(eventType, uuid, result):
     event = eventType

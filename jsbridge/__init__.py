@@ -44,7 +44,7 @@ from time import sleep
 import mozrunner
 import simplesettings
 
-from jsbridge import network
+import networkrepl
 from jsobjects import JSObject
 import global_settings
 
@@ -88,8 +88,8 @@ def start_from_settings(settings, timeout=10):
         host, port = settings['JSBRIDGE_REPL_HOST'].split(':')
         port = int(port)
     
-    network.create_network(host, port)
-    bridge = JSObject(network.repl, "Components.classes['@mozilla.org/appshell/window-mediator;1'].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow('')")
+    networkrepl.create_network(host, port)
+    bridge = JSObject(networkrepl.repl, "Components.classes['@mozilla.org/appshell/window-mediator;1'].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow('')")
     return bridge
     
 def main():
