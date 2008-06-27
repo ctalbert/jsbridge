@@ -44,16 +44,13 @@ from time import sleep
 import mozrunner
 import simplesettings
 
-from network import create_network
+from jsbridge import network
 from jsobjects import JSObject
 import global_settings
 
 settings_env = 'JSBRIDGE_SETTINGS_FILE'
 
-def start_js_bridge(hostname='127.0.0.1', port=4242):
-    back_channel, repl = create_network(hostname, port)
-    bridge = JSObject(repl, "Components.classes['@mozilla.org/appshell/window-mediator;1'].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow('')")
-    return back_channel, repl, bridge
+back_channel = None
     
 def ipython_shell(locals_dict):
     from IPython.Shell import IPShellEmbed
@@ -90,7 +87,10 @@ def start_from_settings(settings, timeout=10):
             settings['JSBRIDGE_REPL_HOST'] =  'localhost:4242'
         host, port = settings['JSBRIDGE_REPL_HOST'].split(':')
         port = int(port)
-    return start_js_bridge(host, port)
+    
+    network.create_network(host, port)
+    bridge = JSObject(network.repl, "Components.classes['@mozilla.org/appshell/window-mediator;1'].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow('')")
+    return bridge
     
 def main():
     parser = optparse.OptionParser()
@@ -125,20 +125,26 @@ def main():
         if getattr(options, opt, None) is not None:
             settings[override] = getattr(options, opt)
         
-    back_channel, repl, bridge = start_from_settings(settings)
+    bridge = start_from_settings(settings)
     if settings.has_key('moz'):
         # We want the moz object in the local ns or the shell to access
         moz = settings['moz']
-        
-    if sys.platform != 'win32':
+    
+    try:
+        import IPython
+    except:
+        IPython = None    
+    if IPython is not None and '--usecode' not in sys.argv:
         sys.argv = sys.argv[:1]
         ipython_shell({'bridge':bridge})#locals())
     else:
         code_shell({'bridge':bridge})
     
-    # There is a bug in some of the traceback code IPython keeps around that causes a strange error here.
-    # The workaround is to remove it from sys.modules
-    sys.modules.pop('IPython', None)
+    # # There is a bug in some of the traceback code IPython keeps around that causes a strange error here.
+    # # The workaround is to remove it from sys.modules
+    # x = sys.modules.pop('IPython', None)
+    # if x is not None:
+    #     del x
     
     if settings.has_key('moz'):
         moz.stop()

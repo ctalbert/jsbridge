@@ -173,6 +173,7 @@ class ReplBackChannel(Telnet):
                 self.sbuffer = self.sbuffer[index:]
 
 def create_network(hostname, port):
+    global back_channel, repl
     back_channel = ReplBackChannel(hostname, port)
     repl = Repl(hostname, port, back_channel=back_channel)
     from threading import Thread
@@ -181,4 +182,3 @@ def create_network(hostname, port):
     getattr(thread, 'setDaemon', lambda x : None)(True)
     thread.start()
     return back_channel, repl
-
