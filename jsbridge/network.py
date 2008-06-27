@@ -44,6 +44,8 @@ from time import sleep
 
 import simplejson
 
+import callbacks
+
 logger = logging.getLogger(__name__)
 
 class JavascriptException(Exception): pass
@@ -112,69 +114,38 @@ class Repl(Telnet):
     def run(self, exec_string):
         callback_uuid = str(uuid.uuid1())
         response = []
-        self.back_channel.block_callbacks[callback_uuid] = lambda x: response.append(x)
+        callbacks.add_callback(lambda x: response.append(x), uuid=callback_uuid)
         self.repl_send(exec_string, callback_uuid)
         while len(response) is 0:
             sleep(.2)
         
         response = response[0]
-        if response['result']['exception'] is True:
-            raise JavascriptException(response['result']['result'])
+        if response['exception'] is True:
+            raise JavascriptException(response['result'])
         else:
-            return response['result']['result']
+            return response['result']
         
-    # def print_run(self, exec_string):
-    #     rprint = self.back_channel.repl_name + '.print('
-    #     call = 'try { ' + rprint + exec_string + ') } catch (err) { ' + rprint + '"#!EXCEPTION" + err) }' 
-    #     result = self.raw_run(call)
-    #     if result.startswith('#!EXCEPTION'):
-    #         raise JavascriptException(result.replace('#!EXCEPTION',''))
-    #     return result
-    # 
-    # def raw_run(self, exec_string):
-    #     rname = self.back_channel.repl_name
-    #     block_uuid = str(uuid.uuid1())
-    #     command = '%s.print("#!START_RAW_BLOCK::%s") ; %s ; %s.print("#!END_RAW_BLOCK::%s") ;' % (
-    #                rname, block_uuid, exec_string, rname, block_uuid
-    #                )
-    #     response = []
-    #     
-    #     self.back_channel.block_callbacks[block_uuid] = lambda x: response.append(x)
-    #     self.send(command)
-    #     while len(response) is 0:
-    #         sleep(.5)
-    #     return response[0]
-        
-    # run = print_run
-
 decoder = simplejson.JSONDecoder()
         
 class ReplBackChannel(Telnet):
-    current_raw_block = None
-    blocks = {}
-    block_callbacks = {}
-    finished_blocks = {}
     trashes = []
     reading = False
     repl_name = None
     sbuffer = ''
-    
-    def block_finished(self, block_uuid):
-        self.finished_blocks.append(block_uuid)
-        self.block_callbacks.get(block_uuid, lambda x: None)(self.blocks[block_uuid])
 
     def read_callback(self, data):
         #print data
         last_line = data.splitlines()[-1]
         self.repl_name = last_line.replace('> ','')
         self.repl_prompt = last_line
+        self.send(
+            "Components.utils.import('resource://jsbridge/modules/controller.js').JSBridgeController.addBridgeRepl("
+            +self.repl_name+")")
         self.read_callback = self.process_read
         
     def fire_callbacks(self, obj):
-        """Handle all callback fireing or json objects pulled from the data stream."""
-        self.finished_blocks[obj['uuid']] = obj
-        if self.block_callbacks.has_key(obj['uuid']):
-            self.block_callbacks[obj['uuid']](obj)
+        """Handle all callback fireing on json objects pulled from the data stream."""
+        callbacks.fire_event(**dict([(str(key), value,) for key, value in obj.items()]))
 
     def process_read(self, data):
         """Parse out json objects and fire callbacks."""
@@ -200,35 +171,6 @@ class ReplBackChannel(Telnet):
             if self.parsing:
                 self.fire_callbacks(obj)
                 self.sbuffer = self.sbuffer[index:]
-
-        # if self.current_raw_block is None:
-        #     if '#!START_RAW_BLOCK::' not in data:
-        #         self.trashes.append(data)
-        #     else:
-        #         lines = data.splitlines()
-        #         start_index = lines.index([l for l in lines if '#!START_RAW_BLOCK::' in l][0])
-        #         self.current_raw_block = lines[start_index].replace('#!START_RAW_BLOCK::', '')
-        #         self.blocks[self.current_raw_block] = ''
-        #         self.process_read('\n'.join(lines[start_index + 1:]))
-        # elif '#!END_RAW_BLOCK::' in data:
-        #     lines = data.splitlines()
-        #     end_index = lines.index([l for l in lines if '#!END_RAW_BLOCK::' in l][0])
-        #     assert lines[end_index].replace('#!END_RAW_BLOCK::', '') == self.current_raw_block
-        #     if len(lines) is not 1:
-        #         self.blocks[self.current_raw_block] += '\n'.join(lines[:end_index ])
-        #     else:
-        #         if len(self.blocks[self.current_raw_block]) is 0:
-        #             self.blocks[self.current_raw_block] = None
-        #         
-        #     block_uuid = copy.copy(self.current_raw_block)
-        #     self.current_raw_block = None
-        #     self.reading = False
-        #     self.block_finished(block_uuid)
-        #     self.read_callback('\n'.join(lines[end_index:]))
-        # else:
-        #     self.blocks[self.current_raw_block] += data
-        # self.reading = False
-            
 
 def create_network(hostname, port):
     back_channel = ReplBackChannel(hostname, port)

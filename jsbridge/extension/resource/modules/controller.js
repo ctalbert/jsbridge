@@ -63,6 +63,7 @@ JSBridgeController.eventsByUUID = {};
 JSBridgeController.eventsByType = {};
 JSBridgeController.callbackRegistryByUUID = {};
 JSBridgeController.callbackRegistryByType = {};
+JSBridgeController.bridgeRepl = [];
 
 JSBridgeController.fireEvent = function (eventType, obj, uuid, repl) {
     if (uuid == undefined) {
@@ -99,21 +100,23 @@ JSBridgeController.addListener = function (eventType, callback) {
     }
 }
 
-JSBridgeController.addBridgeListener = function (eventType) {
-    var listener = function (eventType, obj, uuid) {
-        JSBridgeController.bridgeRepl.onOutput(jsonEncode({"eventType":eventType, "result":obj, "uuid":uuid}));
+JSBridgeController.bridgeListener = function (eventType, obj, uuid) {
+    for ( var i=0, len=JSBridgeController.bridgeRepl.length; i<len; ++i ){
+        JSBridgeController.bridgeRepl[i].onOutput(jsonEncode({"eventType":eventType, "result":obj, "uuid":uuid}));
     }
-    
+}
+
+JSBridgeController.addBridgeListener = function (eventType) {
     if (JSBridgeController.callbackRegistryByType[eventType] != undefined) {
-        JSBridgeController.callbackRegistryByType[eventType].concat(listener);
+        JSBridgeController.callbackRegistryByType[eventType].concat(JSBridgeController.bridgeListener);
     }
     else {
-        JSBridgeController.callbackRegistryByType[eventType] = [listener];
+        JSBridgeController.callbackRegistryByType[eventType] = [JSBridgeController.bridgeListener];
     }
 } 
 
-JSBridgeController.setBridgeRepl = function (repl) {
-    JSBridgeController.bridgeRepl = repl;
+JSBridgeController.addBridgeRepl = function (repl) {
+    JSBridgeController.bridgeRepl.concat(repl);
 }
 
 JSBridgeController.wrapDispatch = function (uuid) {
