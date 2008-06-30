@@ -35,14 +35,23 @@
 // 
 // ***** END LICENSE BLOCK *****
 
-var EXPORTED_SYMBOLS = ["inspect"];
-
-function inspect (obj) {
-    inspection = Components.utils.import("resource://jsbridge/modules/inspection.js").inspect(obj);
+jsbridge = {
+    controller: Components.utils.import('resource://jsbridge/modules/controller.js'),
+    debugging:  Components.utils.import('resource://jsbridge/modules/debugging.js'),
+    events:     Components.utils.import('resource://jsbridge/modules/events.js'),
+    inspection: Components.utils.import('resource://jsbridge/modules/inspection.js'),
 }
 
+function attachBridge (item) {
+    // item.subject.jsbridge = jsbridge;
+    Components.utils.import('resource://jsbridge/modules/controller.js').JSBridgeController.bridgeRepl[0].onOutput(item.topic);
+}
 
+jsbridge.events.addListener('domwindowopened', attachBridge);
+jsbridge.events.addListener('toplevel-window-ready', attachBridge);
+jsbridge.events.addListener('xul-window-registered', attachBridge);
+jsbridge.events.addListener('xul-window-visible', attachBridge);
+jsbridge.events.addListener('xul-window-destroyed', attachBridge);
+jsbridge.events.addListener('dom-window-destroyed', attachBridge);
 
-
-
-
+Components.utils.import('resource://jsbridge/modules/controller.js').JSBridgeController.test = 'working'

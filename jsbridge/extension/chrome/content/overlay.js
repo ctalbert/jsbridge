@@ -35,14 +35,4 @@
 // 
 // ***** END LICENSE BLOCK *****
 
-var EXPORTED_SYMBOLS = ["inspect"];
-
-function inspect (obj) {
-    inspection = Components.utils.import("resource://jsbridge/modules/inspection.js").inspect(obj);
-}
-
-
-
-
-
-
+Components.utils.import('resource://jsbridge/modules/init.js')

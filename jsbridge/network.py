@@ -165,7 +165,7 @@ class ReplBackChannel(Telnet):
 
     def process_read(self, data):
         """Parse out json objects and fire callbacks."""
-        #print data
+        print data
         self.sbuffer += data.replace('\n'+self.repl_prompt+'\n', '').replace('\n'+self.repl_prompt, '')
         self.reading = True
         self.parsing = True
