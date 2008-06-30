@@ -43,7 +43,7 @@ module_path = os.path.abspath(os.path.dirname(__file__))
 
 MOZILLA_PLUGINS = [os.path.join(module_path, 'extension'),
                    os.path.join(module_path, 'xpi', 'mozlab-current-0.1.9.2008050521.xpi'),
-                   os.path.join(module_path, 'xpi', 'venkman-0.9.87.3.xpi'),
+                   os.path.join(module_path, 'xpi', 'javascript_debugger-0.9.87.4-fx+tb+sb+sm.xpi'),
                    # os.path.join(trunk_path, 'chromelist-trunk-r13.xpi'),
                    # os.path.join(trunk_path, 'chromebug-trunk-r234.xpi'),
                    # os.path.join(trunk_path, 'firebug1.2-branch-r741.xpi'),
@@ -56,6 +56,7 @@ MOZILLA_PREFERENCES = {
     'extensions.chromebug.openalways' : True,
     'extensions.chromebug.showIntroduction' : False,
     'general.warnOnAboutConfig' : False,
+    'extensions.venkman.enableChromeFilter' : False,
     }
 
 MOZILLA_CMD_ARGS = ['-repl', '24242', '-jsconsole',]# '-chrome' 'chrome://chromebug/content/chromebug.xul', '-p', 'chromebug']

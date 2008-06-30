@@ -175,7 +175,6 @@ class ReplBackChannel(Telnet):
             #print index
             if index is not -1 and index is not 0:
                 self.sbuffer = self.sbuffer[index:]
-                #print 'after scrapping#', self.sbuffer, "#"
             # Try to get a json object from the data stream    
             try:
                 obj, index = decoder.raw_decode(self.sbuffer)

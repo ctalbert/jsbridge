@@ -35,9 +35,6 @@
 // 
 // ***** END LICENSE BLOCK *****
 
-// Use Components.utils.import("resource://controller/JSBridgeController.jsm");
-// to load a singleton instance of this object.
-
 var EXPORTED_SYMBOLS = ["JSBridgeController"];
 
 var nativeJSON = Components.classes["@mozilla.org/dom/json;1"]
@@ -73,7 +70,7 @@ JSBridgeController.fireEvent = function (eventType, obj, uuid, repl) {
     if (JSBridgeController.eventsByType[eventType] == undefined) {
         JSBridgeController.eventsByType[eventType] = [];
     }
-    JSBridgeController.eventsByType[eventType].concat({"uuid":uuid, "obj":obj});
+    JSBridgeController.eventsByType[eventType] = JSBridgeController.eventsByType[eventType].concat({"uuid":uuid, "obj":obj});
     JSBridgeController.fireCallbacks(eventType, obj, uuid, repl);
 }
 
@@ -93,7 +90,7 @@ JSBridgeController.addListener = function (eventType, callback) {
     var listner = function (eventType, obj, uuid) { return callback(obj); }
     
     if (JSBridgeController.callbackRegistryByType[eventType] != undefined) {
-        JSBridgeController.callbackRegistryByType[eventType].concat(listener);
+        JSBridgeController.callbackRegistryByType[eventType] = JSBridgeController.callbackRegistryByType[eventType].concat(listener);
     }
     else {
         JSBridgeController.callbackRegistryByType[eventType] = [listener];
@@ -108,7 +105,7 @@ JSBridgeController.bridgeListener = function (eventType, obj, uuid) {
 
 JSBridgeController.addBridgeListener = function (eventType) {
     if (JSBridgeController.callbackRegistryByType[eventType] != undefined) {
-        JSBridgeController.callbackRegistryByType[eventType].concat(JSBridgeController.bridgeListener);
+        JSBridgeController.callbackRegistryByType[eventType] = JSBridgeController.callbackRegistryByType[eventType].concat(JSBridgeController.bridgeListener);
     }
     else {
         JSBridgeController.callbackRegistryByType[eventType] = [JSBridgeController.bridgeListener];
@@ -116,7 +113,7 @@ JSBridgeController.addBridgeListener = function (eventType) {
 } 
 
 JSBridgeController.addBridgeRepl = function (repl) {
-    JSBridgeController.bridgeRepl.concat(repl);
+    JSBridgeController.bridgeRepl = JSBridgeController.bridgeRepl.concat(repl);
 }
 
 JSBridgeController.wrapDispatch = function (uuid) {
@@ -190,6 +187,9 @@ JSBridgeController.run = function (exec_string, repl, uuid) {
     return uuid;
 }
 
-
-// Application.events.addListener("onOpenWindow", function (w) { w.JSBridgeController = JSBridgeController; });
+// var window = Components.classes["@mozilla.org/appshell/appShellService;1"]
+//          .getService(Components.interfaces.nsIAppShellService)
+//          .hiddenDOMWindow;
+// 
+// window.Application.events.addListener("xul-window-visible", function (w) { JSBridgeController.bridgeRepl[0].onOutput('\nasdf\n') });
 
