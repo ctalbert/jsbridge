@@ -35,6 +35,8 @@
 // 
 // ***** END LICENSE BLOCK *****
 
+var EXPORTED_SYMBOLS = ["jsbridge"];
+
 jsbridge = {
     controller: Components.utils.import('resource://jsbridge/modules/controller.js'),
     debugging:  Components.utils.import('resource://jsbridge/modules/debugging.js'),
