@@ -143,15 +143,16 @@ class ReplBackChannel(Telnet):
 
     def read_callback(self, data):
         #print data
-        last_line = data.splitlines()[-1]
-        self.repl_name = last_line.replace('> ','')
-        self.repl_prompt = last_line
-        self.send(
-            "Components.utils.import('resource://jsbridge/modules/controller.js').JSBridgeController.addBridgeRepl("
-            +self.repl_name+");\n")
-        self.read_callback = self.process_read
-        for event in set(back_channel_on_connect_events):
-            self.add_bridge_listener(event)
+        if len(data) > 0:
+            last_line = data.splitlines()[-1]
+            self.repl_name = last_line.replace('> ','')
+            self.repl_prompt = last_line
+            self.send(
+                "Components.utils.import('resource://jsbridge/modules/controller.js').JSBridgeController.addBridgeRepl("
+                +self.repl_name+");\n")
+            self.read_callback = self.process_read
+            for event in set(back_channel_on_connect_events):
+                self.add_bridge_listener(event)
             
     def add_bridge_listener(self, event):
         if event not in self.events_list:
