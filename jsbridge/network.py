@@ -143,11 +143,6 @@ class ReplBackChannel(Telnet):
 
     def read_callback(self, data):
         #print data
-        try:
-            data.splitlines()[-1]
-        except Exception, e:
-            print e.__class__, e.message
-        
         if len(data) > 0:
             last_line = data.splitlines()[-1]
             self.repl_name = last_line.replace('> ','')
