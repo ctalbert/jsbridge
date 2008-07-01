@@ -108,7 +108,7 @@ class Repl(Telnet):
     def repl_send(self, exec_string, callback_uuid=None):
         if uuid is None:
             callback_uuid = str(uuid.uuid1())
-        call = ( 'Components.utils.import("resource://jsbridge/modules/controller.js").JSBridgeController.run('
+        call = ( 'jsbridge.controller.JSBridgeController.run('
             +simplejson.dumps(exec_string)+', '
             +self.back_channel.repl_name+', '
             +simplejson.dumps(callback_uuid)+');\n' 
@@ -147,18 +147,14 @@ class ReplBackChannel(Telnet):
             last_line = data.splitlines()[-1]
             self.repl_name = last_line.replace('> ','')
             self.repl_prompt = last_line
-            self.send(
-                "Components.utils.import('resource://jsbridge/modules/controller.js').JSBridgeController.addBridgeRepl("
-                +self.repl_name+");\n")
+            self.send("jsbridge.controller.JSBridgeController.addBridgeRepl("+self.repl_name+");\n")
             self.read_callback = self.process_read
             for event in set(back_channel_on_connect_events):
                 self.add_bridge_listener(event)
             
     def add_bridge_listener(self, event):
         if event not in self.events_list:
-            self.send(
-            "Components.utils.import('resource://jsbridge/modules/controller.js').JSBridgeController.addBridgeListener("+event+");\n"
-            )
+            self.send("jsbridge.controller.JSBridgeController.addBridgeListener("+event+");\n")
         
     def fire_callbacks(self, obj):
         """Handle all callback fireing on json objects pulled from the data stream."""
@@ -166,7 +162,7 @@ class ReplBackChannel(Telnet):
 
     def process_read(self, data):
         """Parse out json objects and fire callbacks."""
-        print data
+        #print data
         self.sbuffer += data.replace('\n'+self.repl_prompt+'\n', '').replace('\n'+self.repl_prompt, '')
         self.reading = True
         self.parsing = True
@@ -182,7 +178,7 @@ class ReplBackChannel(Telnet):
                 #print 'passed'
             except Exception, e:
                 self.parsing = False
-                #print 'failed', e.message 
+                #print e.__class__, e.message
             # If we got an object fire the callback infra    
             if self.parsing:
                 self.fire_callbacks(obj)

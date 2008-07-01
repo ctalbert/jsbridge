@@ -163,7 +163,7 @@ JSBridgeController.run_method = function (method, args, repl, uuid) {
     var window = Components.classes["@mozilla.org/appshell/appShellService;1"]
              .getService(Components.interfaces.nsIAppShellService)
              .hiddenDOMWindow;
-     window.setTimeout("Components.utils.import('resource://jsbridge/modules/controller.js').JSBridgeController.wrapDispatch('"+uuid+"')", 1 );
+     window.setTimeout("jsbridge.controller.JSBridgeController.wrapDispatch('"+uuid+"')", 1 );
     return uuid;
 }
 
@@ -182,7 +182,7 @@ JSBridgeController.run = function (exec_string, repl, uuid) {
     var window = Components.classes["@mozilla.org/appshell/appShellService;1"]
              .getService(Components.interfaces.nsIAppShellService)
              .hiddenDOMWindow;
-    window.setTimeout("Components.utils.import('resource://jsbridge/modules/controller.js').JSBridgeController.wrapDispatch('"+uuid+"')", 1 );
+    window.setTimeout("jsbridge.controller.JSBridgeController.wrapDispatch('"+uuid+"')", 1 );
 
     return uuid;
 }

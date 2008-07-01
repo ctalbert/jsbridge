@@ -35,13 +35,15 @@
 // 
 // ***** END LICENSE BLOCK *****
 
-var EXPORTED_SYMBOLS = ["inspect"];
+var EXPORTED_SYMBOLS = ["inspect", "enableAllDebug"];
 
 function inspect (obj) {
     inspection = Components.utils.import("resource://jsbridge/modules/inspection.js").inspect(obj);
 }
 
-
+function enableAllDebug () {
+    
+}
 
 
 

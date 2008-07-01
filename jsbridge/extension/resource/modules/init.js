@@ -45,15 +45,26 @@ jsbridge = {
 }
 
 function attachBridge (item) {
-    // item.subject.jsbridge = jsbridge;
-    Components.utils.import('resource://jsbridge/modules/controller.js').JSBridgeController.bridgeRepl[0].onOutput(item.topic);
+    item.subject.jsbridge = jsbridge;
 }
 
 jsbridge.events.addListener('domwindowopened', attachBridge);
-jsbridge.events.addListener('toplevel-window-ready', attachBridge);
-jsbridge.events.addListener('xul-window-registered', attachBridge);
-jsbridge.events.addListener('xul-window-visible', attachBridge);
-jsbridge.events.addListener('xul-window-destroyed', attachBridge);
-jsbridge.events.addListener('dom-window-destroyed', attachBridge);
+// jsbridge.events.addListener('toplevel-window-ready', attachBridge);
+// jsbridge.events.addListener('xul-window-registered', attachBridge);
+// jsbridge.events.addListener('xul-window-visible', attachBridge);
+// jsbridge.events.addListener('xul-window-destroyed', attachBridge);
+// jsbridge.events.addListener('dom-window-destroyed', attachBridge);
 
-Components.utils.import('resource://jsbridge/modules/controller.js').JSBridgeController.test = 'working'
+var hwindow = Components.classes["@mozilla.org/appshell/appShellService;1"]
+         .getService(Components.interfaces.nsIAppShellService)
+         .hiddenDOMWindow;
+
+hwindow.jsbridge = jsbridge;
+
+for (w in hwindow.Application.windows) {
+    if (w._window != undefined) {
+        w._window.jsbridge = jsbridge;
+    }
+}
+
+// Components.utils.import('resource://jsbridge/modules/controller.js').JSBridgeController.test = 'working'
