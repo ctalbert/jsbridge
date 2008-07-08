@@ -44,7 +44,7 @@ var hwindow = Components.classes["@mozilla.org/appshell/appShellService;1"]
          .hiddenDOMWindow;
 
 function crop(string, max) {
-    string = string.match(/^(.+?)(\n|$)/m)[1];
+    //string = string.match(/^(.+?)(\n|$)/m)[1];
     max = max || 70;
     return (string.length > max-3) ? string.slice(0, max-3) + '...' : string;
 }
@@ -61,7 +61,7 @@ function dinspect (obj) {
         if (prop.ptype == "string") {
             hwindow.venkmanDisplay(prop.name+"="+crop(prop.pvalue)+"");
         }
-        else if (prop.ptype == "int" || prop.ptype == "float") {
+        else if (prop.ptype == "number") {
             hwindow.venkmanDisplay(prop.name+"="+prop.pvalue+"");
         }
         else {
