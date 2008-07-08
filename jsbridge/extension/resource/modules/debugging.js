@@ -43,6 +43,12 @@ var hwindow = Components.classes["@mozilla.org/appshell/appShellService;1"]
          .getService(Components.interfaces.nsIAppShellService)
          .hiddenDOMWindow;
 
+function crop(string, max) {
+    string = string.match(/^(.+?)(\n|$)/m)[1];
+    max = max || 70;
+    return (string.length > max-3) ? string.slice(0, max-3) + '...' : string;
+}
+
 function dinspect (obj) {
     inspection = utils.inspect(obj);
     if (inspection.result == false) {
@@ -52,7 +58,10 @@ function dinspect (obj) {
     hwindow.venkmanDisplay("++Props++")
     for (i in inspection.props) {
         prop = inspection.props[i];
-        if (prop.ptype == "string" && prop.ptype == "int" && prop.ptype == "float") {
+        if (prop.ptype == "string") {
+            hwindow.venkmanDisplay(prop.name+"="+crop(prop.pvalue)+"");
+        }
+        else if (prop.ptype == "int" || prop.ptype == "float") {
             hwindow.venkmanDisplay(prop.name+"="+prop.pvalue+"");
         }
         else {
