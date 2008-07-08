@@ -47,6 +47,10 @@ var jsonEncode = json2.JSON.stringify;
 var uuidgen = Components.classes["@mozilla.org/uuid-generator;1"]
     .getService(Components.interfaces.nsIUUIDGenerator);
 
+var hwindow = Components.classes["@mozilla.org/appshell/appShellService;1"]
+         .getService(Components.interfaces.nsIAppShellService)
+         .hiddenDOMWindow;
+
 function range(begin, end) {
   for (let i = begin; i < end; ++i) {
     yield i;
@@ -128,8 +132,9 @@ JSBridgeController.wrapDispatch = function (uuid) {
     else {
         eventType = "execString";
     }
+    
     try {
-        dispatch.result = eval(dispatch.exec_string);
+        dispatch.result = hwindow.eval(dispatch.exec_string);
         dispatch.exception = false;
     } catch(e) {
         dispatch.result = e;
@@ -160,10 +165,7 @@ JSBridgeController.run_method = function (method, args, repl, uuid) {
     JSBridgeController.callbackRegistryByUUID[uuid] = listener;    
     JSBridgeController.methodDispatches[uuid] = {"method":method, "args":args, "repl":repl, "uuid":uuid};
     
-    var window = Components.classes["@mozilla.org/appshell/appShellService;1"]
-             .getService(Components.interfaces.nsIAppShellService)
-             .hiddenDOMWindow;
-     window.setTimeout("jsbridge.controller.JSBridgeController.wrapDispatch('"+uuid+"')", 1 );
+    hwindow.setTimeout("jsbridge.controller.JSBridgeController.wrapDispatch('"+uuid+"')", 1 );
     return uuid;
 }
 
@@ -179,10 +181,7 @@ JSBridgeController.run = function (exec_string, repl, uuid) {
     JSBridgeController.callbackRegistryByUUID[uuid] = listener;    
     JSBridgeController.methodDispatches[uuid] = {"exec_string":exec_string, "repl":repl, "uuid":uuid};
 
-    var window = Components.classes["@mozilla.org/appshell/appShellService;1"]
-             .getService(Components.interfaces.nsIAppShellService)
-             .hiddenDOMWindow;
-    window.setTimeout("jsbridge.controller.JSBridgeController.wrapDispatch('"+uuid+"')", 1 );
+    hwindow.setTimeout("jsbridge.controller.JSBridgeController.wrapDispatch('"+uuid+"')", 1 );
 
     return uuid;
 }

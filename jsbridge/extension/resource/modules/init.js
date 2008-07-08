@@ -37,34 +37,73 @@
 
 var EXPORTED_SYMBOLS = ["jsbridge"];
 
+var hwindow = Components.classes["@mozilla.org/appshell/appShellService;1"]
+         .getService(Components.interfaces.nsIAppShellService)
+         .hiddenDOMWindow;
+
 jsbridge = {
     controller: Components.utils.import('resource://jsbridge/modules/controller.js'),
     debugging:  Components.utils.import('resource://jsbridge/modules/debugging.js'),
     events:     Components.utils.import('resource://jsbridge/modules/events.js'),
-    inspection: Components.utils.import('resource://jsbridge/modules/inspection.js'),
+    utils:      Components.utils.import('resource://jsbridge/modules/utils.js'),
 }
+jsbridge.controller.JSBridgeController.jsbridge = jsbridge;
+
+function printEvent (item) {
+    jsbridge.controller.JSBridgeController.bridgeRepl[0].print(item.topic);
+}
+
+// jsbridge.events.addListener('domwindowopened', printEvent);
+// jsbridge.events.addListener('toplevel-window-ready', printEvent);
+// jsbridge.events.addListener('xul-window-registered', printEvent);
+// jsbridge.events.addListener('xul-window-visible', printEvent);
+// jsbridge.events.addListener('xul-window-destroyed', printEvent);
+// jsbridge.events.addListener('dom-window-destroyed', printEvent);
+
 
 function attachBridge (item) {
     item.subject.jsbridge = jsbridge;
 }
 
 jsbridge.events.addListener('domwindowopened', attachBridge);
-// jsbridge.events.addListener('toplevel-window-ready', attachBridge);
-// jsbridge.events.addListener('xul-window-registered', attachBridge);
-// jsbridge.events.addListener('xul-window-visible', attachBridge);
-// jsbridge.events.addListener('xul-window-destroyed', attachBridge);
-// jsbridge.events.addListener('dom-window-destroyed', attachBridge);
-
-var hwindow = Components.classes["@mozilla.org/appshell/appShellService;1"]
-         .getService(Components.interfaces.nsIAppShellService)
-         .hiddenDOMWindow;
 
 hwindow.jsbridge = jsbridge;
 
-for (w in hwindow.Application.windows) {
-    if (w._window != undefined) {
-        w._window.jsbridge = jsbridge;
-    }
+var enumerator = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+                   .getService(Components.interfaces.nsIWindowMediator)
+                   .getEnumerator("");
+while(enumerator.hasMoreElements()) {
+    var win = enumerator.getNext();
+    win.jsbridge = jsbridge;
 }
+
+function attachDebuggingToVenkman (item) {
+    // jsbridge.controller.JSBridgeController.bridgeRepl[0].print('here '+typeof(item.subject.print))
+    function attach() {
+        // jsbridge.controller.JSBridgeController.bridgeRepl[0].print(
+        //     jsbridge.controller.jsonEncode([prop for (prop in item.subject)])
+        // );
+        if (item.subject.display != undefined) {
+            item.subject.inspect = jsbridge.debugging.dinspect;
+            hwindow.venkmanDisplay = item.subject.display;
+        }
+    }
+    
+    item.subject.addEventListener("load", attach, false) 
+}
+
+
+jsbridge.events.addListener('toplevel-window-ready', attachDebuggingToVenkman);
+
+
+// 
+// var mediator = Components.classes['@mozilla.org/appshell/window-mediator;1']
+//          .getService(Components.interfaces.nsIWindowMediator)
+// 
+// for (i in hwindow.Application.windows) {
+//     if (hwindow.Application.windows[i]._window != undefined) {
+//         hwindow.Application.windows[i]._window.jsbridge = jsbridge;
+//     }
+// }
 
 // Components.utils.import('resource://jsbridge/modules/controller.js').JSBridgeController.test = 'working'

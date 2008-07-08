@@ -35,7 +35,21 @@
 // 
 // ***** END LICENSE BLOCK *****
 
-var EXPORTED_SYMBOLS = ["inspect"];
+var EXPORTED_SYMBOLS = ["inspect", "getWindows"];
+
+function getWindows(type) {
+    if (type == undefined) {
+        var type = "";
+    }
+    var windows = []
+    var enumerator = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+                       .getService(Components.interfaces.nsIWindowMediator)
+                       .getEnumerator(type);
+    while(enumerator.hasMoreElements()) {
+        windows = windows.concat(enumerator.getNext());
+    }
+    return windows;
+}
 
 function inspect(obj) {
 // adapted from ddumpObject() at

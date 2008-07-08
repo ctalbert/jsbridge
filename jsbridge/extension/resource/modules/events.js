@@ -37,6 +37,10 @@
 
 var EXPORTED_SYMBOLS = ["addListener"];
 
+var hwindow = Components.classes["@mozilla.org/appshell/appShellService;1"]
+         .getService(Components.interfaces.nsIAppShellService)
+         .hiddenDOMWindow;
+
 function EventItem (subject, topic, data) {
     this.subject = subject;
     this.topic = topic;
@@ -45,12 +49,15 @@ function EventItem (subject, topic, data) {
 
 function Observer(topic, callback) {
     this.topic = topic;
-    this.callback = callback;
+    this.callbacks = [callback];
     this.register();
 }
 Observer.prototype = {
     observe: function(subject, topic, data) {
-        this.callback(new EventItem(subject, topic, data));
+        for (i in this.callbacks) {
+            // hwindow.jsbridge.controller.JSBridgeController.bridgeRepl[0].onOutput(callback)
+            this.callbacks[i](new EventItem(subject, topic, data));
+            }
     },
     register: function() {
         var observerService = Components.classes["@mozilla.org/observer-service;1"]
@@ -61,14 +68,21 @@ Observer.prototype = {
         var observerService = Components.classes["@mozilla.org/observer-service;1"]
                                         .getService(Components.interfaces.nsIObserverService);
         observerService.removeObserver(this, this.topic);
+    },
+    addCallback: function(callback) {
+        this.callbacks.push(callback);
     }
 }
 
-var listeners = [];
+var listeners = {};
 
 function addListener(topic, callback) {
-    var observer = new Observer(topic, callback);
-    listeners = listeners.concat(observer);
-    return observer;
+    if (listeners[topic] == undefined) {
+        var observer = new Observer(topic, callback);
+        listeners[topic] = observer;
+    }
+    else {
+        listeners[topic].addCallback(callback);
+    }
 }
 

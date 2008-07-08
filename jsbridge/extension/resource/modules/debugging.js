@@ -35,15 +35,36 @@
 // 
 // ***** END LICENSE BLOCK *****
 
-var EXPORTED_SYMBOLS = ["inspect", "enableAllDebug"];
+var EXPORTED_SYMBOLS = ["inspect"];
 
-function inspect (obj) {
-    inspection = Components.utils.import("resource://jsbridge/modules/inspection.js").inspect(obj);
-}
+var utils = Components.utils.import("resource://jsbridge/modules/utils.js");
 
-function enableAllDebug () {
-    
+var hwindow = Components.classes["@mozilla.org/appshell/appShellService;1"]
+         .getService(Components.interfaces.nsIAppShellService)
+         .hiddenDOMWindow;
+
+function dinspect (obj) {
+    inspection = utils.inspect(obj);
+    if (inspection.result == false) {
+        hwindow.venkmanDisplay("Object failed inspection.");
+    }
+    hwindow.venkmanDisplay("Type: "+inspection.ptype);
+    hwindow.venkmanDisplay("++Props++")
+    for (i in inspection.props) {
+        prop = inspection.props[i];
+        if (prop.ptype == "string" && prop.ptype == "int" && prop.ptype == "float") {
+            hwindow.venkmanDisplay(prop.name+"="+prop.pvalue+"");
+        }
+        else {
+            hwindow.venkmanDisplay(prop.name+"=["+prop.ptype+"]");
+        }
+    }
+    return "";
 }
+// 
+// function enableAllDebug () {
+//     
+// }
 
 
 

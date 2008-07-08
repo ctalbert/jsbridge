@@ -159,7 +159,7 @@ class JSObject(object):
         """Load the full set of lazy loaded jsobjects for this object."""
         if attributes_dict is None:
             self._loaded_ = None
-            inspection = self._repl_.run('jsbridge.inspection.inspect('+self._name_+')')
+            inspection = self._repl_.run('jsbridge.utils.inspect('+self._name_+')')
             inspect_dict, obj_type = parse_inspection(inspection)
             self_dict = create_jsobject_dict(self._repl_, self._name_, inspect_dict)
         else:

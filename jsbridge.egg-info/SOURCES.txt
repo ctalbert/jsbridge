@@ -12,7 +12,7 @@ jsbridge.egg-info/top_level.txt
 jsbridge/extension/chrome.manifest
 jsbridge/extension/install.rdf
 jsbridge/extension/resource/modules/controller.js
-jsbridge/extension/resource/modules/inspection.js
+jsbridge/extension/resource/modules/utils.js
 jsbridge/extension/resource/modules/json2.js
 jsbridge/xpi/mozlab-current-0.1.9.2008050521.xpi
 jsbridge/xpi/venkman-0.9.87.3.xpi
