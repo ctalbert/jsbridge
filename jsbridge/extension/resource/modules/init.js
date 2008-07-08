@@ -61,11 +61,12 @@ function printEvent (item) {
 // jsbridge.events.addListener('dom-window-destroyed', printEvent);
 
 
-function attachBridge (item) {
+function attachToNewWindow (item) {
     item.subject.jsbridge = jsbridge;
+    item.subject._hwindow = hwindow;
 }
 
-jsbridge.events.addListener('domwindowopened', attachBridge);
+jsbridge.events.addListener('domwindowopened', attachToNewWindow);
 
 hwindow.jsbridge = jsbridge;
 
@@ -74,7 +75,7 @@ var enumerator = Components.classes["@mozilla.org/appshell/window-mediator;1"]
                    .getEnumerator("");
 while(enumerator.hasMoreElements()) {
     var win = enumerator.getNext();
-    win.jsbridge = jsbridge;
+    attachToNewWindow({"subject":win});
 }
 
 function attachDebuggingToVenkman (item) {
