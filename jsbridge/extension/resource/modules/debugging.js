@@ -56,8 +56,16 @@ function dinspect (obj) {
     }
     hwindow.venkmanDisplay("Type: "+inspection.ptype);
     hwindow.venkmanDisplay("++Props++")
+    indexing = [];
+    allprops = {};
     for (i in inspection.props) {
-        prop = inspection.props[i];
+        allprops[inspection.props[i].name] = inspection.props[i];
+        indexing = indexing.concat(inspection.props[i].name);
+    }
+    indexing = indexing.sort();
+
+    for (i in indexing) {
+        prop = allprops[indexing[i]];
         if (prop.ptype == "string") {
             hwindow.venkmanDisplay(prop.name+"="+crop(prop.pvalue)+"");
         }
