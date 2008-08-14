@@ -91,6 +91,28 @@ def start_from_settings(settings, timeout=10):
     network.create_network(host, port)
     bridge = JSObject(network.repl, "Components.classes['@mozilla.org/appshell/window-mediator;1'].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow('')")
     return bridge
+
+
+def set_debug(settings):
+    
+    module_path = global_settings.module_path   
+    settings['MOZILLA_PLUGINS'] += [os.path.join(module_path, 'xpi',
+                                        'javascript_debugger-0.9.87.4-fx+tb+sb+sm.xpi'),
+                                    os.path.join(module_path, 'xpi', 'firebug-1.2.0b7-fx.xpi'),
+                                    os.path.join(module_path, 'xpi', 'chromebug-trunk'),
+                                    ]
+    settings['MOZILLA_CMD_ARGS'] += ['-jsconsole', '-chrome', 
+                                     'chrome://chromebug/content/chromebug.xul', 
+                                     '-p', 'chromebug', '-firefox']
+    rdf = open(os.path.join(module_path, 'xpi', 'chromebug-trunk', 'install.rdf.tpl.xml'), 'r').read()
+    rdf = rdf.replace('@FULLVERSION@', '0.1')
+    rdf = rdf.replace('<em:updateURL>@UPDATEPATH@/update.rdf</em:updateURL>\n', '')
+    rdf = rdf.replace('<em:homepageURL>@UPDATEPATH@/index.html</em:homepageURL>\n', '')
+    rdf = rdf.replace('<em:updateKey>ToBeReplaceByAValueFromMcCoy</em:updateKey>\n', '')
+    f = open(os.path.join(module_path, 'xpi', 'chromebug-trunk', 'install.rdf'), 'w')
+    f.write(rdf)
+    f.close()
+    return settings
     
 def main():
     parser = optparse.OptionParser()
@@ -104,6 +126,11 @@ def main():
                       help="Launch a new firefox instance.", metavar=None)
     parser.add_option('-u', "--host", dest='host', 
                       help="The hostname:port pairing to connect to mozrepl.")
+                      
+    parser.add_option("-z", "--debug",
+                      action="store_true", dest="debug", default=False,
+                      help="Run with firebug, chromebug, venkman, and jsconsole")
+    
     (options, args) = parser.parse_args()
     
     settings_path = getattr(options, 'settings', None)
@@ -124,6 +151,9 @@ def main():
     for opt, override in option_overrides:
         if getattr(options, opt, None) is not None:
             settings[override] = getattr(options, opt)
+    
+    if options.debug is True:
+        set_debug(settings)    
         
     bridge = start_from_settings(settings)
     if settings.has_key('moz'):
