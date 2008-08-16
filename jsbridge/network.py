@@ -39,7 +39,6 @@ import asyncore
 import socket
 import logging
 import uuid
-import copy
 from time import sleep
 
 import simplejson
@@ -48,7 +47,7 @@ import callbacks
 
 logger = logging.getLogger(__name__)
 
-class JavascriptException(Exception): pass
+class JavaScriptException(Exception): pass
 
 class Telnet(object, asyncore.dispatcher):
     def __init__(self, host, port):
@@ -93,104 +92,149 @@ class Telnet(object, asyncore.dispatcher):
     def handle_read(self):
         self.data = self.read_all()
         logger.debug('Raw RECV::'+self.data)
-        self.read_callback(self.data)
+        self.process_read(self.data)
         
     read_callback = lambda self, data: None
-        
-class Repl(Telnet):
 
-    def __init__(self, *args, **kwargs):
-        back_channel = kwargs.pop('back_channel')
-        Telnet.__init__(self, *args, **kwargs)
-        self.back_channel = back_channel
-        sleep(.25)
-
-    def repl_send(self, exec_string, callback_uuid=None):
-        if uuid is None:
-            callback_uuid = str(uuid.uuid1())
-        call = ( 'jsbridge.controller.JSBridgeController.run('
-            +simplejson.dumps(exec_string)+', '
-            +self.back_channel.repl_name+', '
-            +simplejson.dumps(callback_uuid)+');\n' 
-                )
-        self.send(call)
-        return callback_uuid
-
-    def run(self, exec_string):
-        callback_uuid = str(uuid.uuid1())
-        response = []
-        callbacks.add_callback(lambda x: response.append(x), uuid=callback_uuid)
-        self.repl_send(exec_string, callback_uuid)
-        while len(response) is 0:
-            sleep(.2)
-        
-        response = response[0]
-        if response['exception'] is True:
-            raise JavascriptException(response['result'])
-        else:
-            return response['result']
-        
 decoder = simplejson.JSONDecoder()
 
-back_channel_on_connect_events = []
+from simplejson.encoder import encode_basestring_ascii, encode_basestring, floatstr 
+
+class JSObjectEncoder(simplejson.JSONEncoder):
+    """Encoder that supports jsobject references by name."""
+    
+    def _iterencode(self, o, markers=None):
+        import jsobjects
+        if isinstance(o, jsobjects.JSObject):
+            yield o._name_
+        elif isinstance(o, basestring):
+            if self.ensure_ascii:
+                encoder = encode_basestring_ascii
+            else:
+                encoder = encode_basestring
+            _encoding = self.encoding
+            if (_encoding is not None and isinstance(o, str)
+                    and not (_encoding == 'utf-8')):
+                o = o.decode(_encoding)
+            yield encoder(o)
+        elif o is None:
+            yield 'null'
+        elif o is True:
+            yield 'true'
+        elif o is False:
+            yield 'false'
+        elif isinstance(o, (int, long)):
+            yield str(o)
+        elif isinstance(o, float):
+            yield floatstr(o, self.allow_nan)
+        elif isinstance(o, (list, tuple)):
+            for chunk in self._iterencode_list(o, markers):
+                yield chunk
+        elif isinstance(o, dict):
+            for chunk in self._iterencode_dict(o, markers):
+                yield chunk
+        else:
+            if markers is not None:
+                markerid = id(o)
+                if markerid in markers:
+                    raise ValueError("Circular reference detected")
+                markers[markerid] = o
+            for chunk in self._iterencode_default(o, markers):
+                yield chunk
+            if markers is not None:
+                del markers[markerid]
+
+encoder = JSObjectEncoder()
         
-class ReplBackChannel(Telnet):
+class Bridge(Telnet):
+    
     trashes = []
     reading = False
-    repl_name = None
     sbuffer = ''
     events_list = []
 
-    def read_callback(self, data):
-        #print data
-        if len(data) > 0:
-            last_line = data.splitlines()[-1]
-            self.repl_name = last_line.replace('> ','')
-            self.repl_prompt = last_line
-            self.send("Components.utils.import('resource://jsbridge/modules/controller.js').JSBridgeController.addBridgeRepl("+self.repl_name+");\n")
-            self.read_callback = self.process_read
-            for event in set(back_channel_on_connect_events):
-                self.add_bridge_listener(event)
-            
-    def add_bridge_listener(self, event):
-        if event not in self.events_list:
-            self.send("jsbridge.controller.JSBridgeController.addBridgeListener("+event+");\n")
-        
-    def fire_callbacks(self, obj):
-        """Handle all callback fireing on json objects pulled from the data stream."""
-        callbacks.fire_event(**dict([(str(key), value,) for key, value in obj.items()]))
+    callbacks = {}
 
+    def __init__(self, *args, **kwargs):
+        Telnet.__init__(self, *args, **kwargs)  
+    
+    def handle_connect(self):
+        self.register()
+
+    def run(self, _uuid, exec_string, interval=0, raise_exeption=True):
+        exec_string += '\r\n'
+        self.send(exec_string)
+        
+        while _uuid not in self.callbacks.keys():
+            sleep(interval)
+        
+        callback = self.callbacks.pop(_uuid)
+        if callback['result'] is False and raise_exeption is True:
+            raise JavaScriptException(callback['exception'])
+        return callback 
+        
+    def register(self):
+        _uuid = str(uuid.uuid1())
+        self.send('bridge.register("'+_uuid+'", "bridge")\r\n')
+
+    def execFunction(self, func_name, args, interval=.25):
+        _uuid = str(uuid.uuid1())
+        exec_args = [encoder.encode(_uuid), func_name, encoder.encode(args)]
+        return self.run(_uuid, 'bridge.execFunction('+ ', '.join(exec_args)+')', interval)
+        
+    def setAttribute(self, obj_name, name, value):
+        _uuid = str(uuid.uuid1())
+        exec_args = [encoder.encode(_uuid), obj_name, encoder.encode(name), encoder.encode(value)]
+        return self.run(_uuid, 'bridge.setAttribute('+', '.join(exec_args)+')')
+        
+    def set(self, obj_name):
+        _uuid = str(uuid.uuid1())
+        return self.run(_uuid, 'bridge.set('+', '.join([encoder.encode(_uuid), obj_name])+')')
+        
+    def describe(self, obj_name):
+        _uuid = str(uuid.uuid1())
+        return self.run(_uuid, 'bridge.describe('+', '.join([encoder.encode(_uuid), obj_name])+')')
+    
+    def fire_callbacks(self, obj):
+        self.callbacks[obj['uuid']] = obj
+    
     def process_read(self, data):
         """Parse out json objects and fire callbacks."""
-        #print data
-        self.sbuffer += data.replace('\n'+self.repl_prompt+'\n', '').replace('\n'+self.repl_prompt, '')
+        self.sbuffer += data
         self.reading = True
         self.parsing = True
         while self.parsing:
             # Remove erroneus data in front of callback object
             index = self.sbuffer.find('{')
-            #print index
             if index is not -1 and index is not 0:
                 self.sbuffer = self.sbuffer[index:]
             # Try to get a json object from the data stream    
             try:
                 obj, index = decoder.raw_decode(self.sbuffer)
-                #print 'passed'
             except Exception, e:
                 self.parsing = False
-                #print e.__class__, e.message
             # If we got an object fire the callback infra    
             if self.parsing:
                 self.fire_callbacks(obj)
                 self.sbuffer = self.sbuffer[index:]
+        
+class BridgeBackChannel(Bridge):
+        
+    def fire_callbacks(self, obj):
+        """Handle all callback fireing on json objects pulled from the data stream."""
+        callbacks.fire_event(**dict([(str(key), value,) for key, value in obj.items()]))
+        
+    def register(self):
+        _uuid = str(uuid.uuid1())
+        self.send('bridge.register("'+_uuid+'", "backchannel")\r\n')
 
 def create_network(hostname, port):
-    global back_channel, repl
-    back_channel = ReplBackChannel(hostname, port)
-    repl = Repl(hostname, port, back_channel=back_channel)
+    global back_channel, bridge
+    back_channel = BridgeBackChannel(hostname, port)
+    bridge = Bridge(hostname, port)
     from threading import Thread
     global thread
     thread = Thread(target=asyncore.loop)
     getattr(thread, 'setDaemon', lambda x : None)(True)
     thread.start()
-    return back_channel, repl
+    return back_channel, bridge

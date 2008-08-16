@@ -42,7 +42,7 @@ import urllib
 module_path = os.path.abspath(os.path.dirname(__file__))
 
 MOZILLA_PLUGINS = [os.path.join(module_path, 'extension'),
-                   os.path.join(module_path, 'xpi', 'mozlab-current-0.1.9.2008050521.xpi'),
+                   # os.path.join(module_path, 'xpi', 'mozlab-current-0.1.9.2008050521.xpi'),
                    ]
 
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -55,7 +55,7 @@ MOZILLA_PREFERENCES = {
     'extensions.venkman.enableChromeFilter' : False,
     }
 
-MOZILLA_CMD_ARGS = ['-repl', '24242', ]
+MOZILLA_CMD_ARGS = ['-jsbridge', '24242', ]
 
 MOZILLA_CREATE_NEW_PROFILE = True
 

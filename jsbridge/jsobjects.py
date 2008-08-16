@@ -35,37 +35,22 @@
 #
 # ***** END LICENSE BLOCK *****
 
-import simplejson
-import uuid 
+def init_jsobject(cls, bridge, name, value, description=None):
+    """Initialize a js object that is a subclassed base type; int, str, unicode, float."""
+    obj = cls(value)
+    obj._bridge_ = bridge
+    obj._name_ = name
+    obj._description_ = description
+    return obj
 
-def parse_inspection(obj):
-    obj_type = obj["ptype"]
-    props = obj["props"]
-    return props, obj_type
-
-def create_jsobject_dict(repl, basename, props):
-    """Create a dict of jsobjects for a given inspect dict. Guesses transform for each object."""
-    prop_dict = {}
-    for prop in props:
-        if prop['result'] is True:
-            prop_dict[prop['name']] = create_jsobject(repl, basename+'.'+prop['name'], prop.get('pvalue', None), prop['ptype'])
-
-    return prop_dict
-
-def guess_serialization(arg):
-    """Guess the serialization of a given Python object to a javascript textual representaion (JSON)"""
-    if isinstance(arg, JSObject):
-        return arg._name_
-    else:
-        return simplejson.dumps(arg)
-
-def create_jsobject(repl, fullname, value, obj_type=None):
+def create_jsobject(bridge, fullname, value=None, obj_type=None, override_set=False):
     """Create a single JSObject for named object on other side of the bridge.
     
     Handles various initization cases for different JSObjects."""
-    if obj_type is None:
-        obj_type = repl.run('typeof('+fullname+')')
-        
+    description = bridge.describe(fullname)
+    obj_type = description['type']
+    value = description.get('data', None)
+    
     if value is True or value is False:
         return value
 
@@ -73,70 +58,46 @@ def create_jsobject(repl, fullname, value, obj_type=None):
         cls, needs_init = js_type_cases[obj_type]
         # Objects that requires initialization are base types that have "values".
         if needs_init:
-            obj = init_jsobject(cls, repl, fullname, value)
+            obj = init_jsobject(cls, bridge, fullname, value, description=description)
         else:
-            obj = cls(repl, fullname)
+            obj = cls(bridge, fullname, description=description, override_set=override_set)
         return obj
     else:
         # Something very bad happened, we don't have a representation for the given type.
         raise TypeError("Don't have a JSObject for javascript type "+obj_type)
-
-def get_setattr_call(basename, name, value):
-    """Create the javascript call for a Python __setattr__ event."""
-    return basename + '.' + name, guess_serialization(value) 
-
-def get_setitem_call(basename, name, value):
-    """Create the javascript call for a Python __setitem__ event."""
-    return basename + '[' + name + ' ]',  guess_serialization(value)
-
-def get_function_call(basename, args):
-    """Create the javascript call for a Python function call."""
-    fuuid = str(uuid.uuid1()).replace('-','')
-    return fuuid, basename + '(' + ', '.join([guess_serialization(arg) for arg in args]) + ')' 
-
-def get_getitem_call(basename, name):
-    """Create the javascript call for a Python __getitem__ event."""
-    return basename + '[' + guess_serialization(name) + ']'
     
 class JSObject(object):
     """Base javascript object representation."""
     _loaded_ = False
     
-    def __init__(self, repl, name, *args, **kwargs):
-        self._repl_ = repl
+    def __init__(self, bridge, name, override_set=False, description=None, *args, **kwargs):
+        self._bridge_ = bridge
+        if not override_set:
+            name = bridge.set(name)['data']
         self._name_ = name
+        self._description_ = description
     
-    def __jsget__(self, call):
+    def __jsget__(self, name):
         """Abstraction for final step in get events; __getitem__ and __getattr__.
-        
-        Handles execution of javascript call and returns JSObject instance."""
-        result = self._repl_.run(call)
-        
-        if type(result) is str:
-            result = create_jsobject(self._repl_, call, result)
+        """
+        result = create_jsobject(self._bridge_, name, override_set=True)
         return result
     
     def __getattr__(self, name):
         """Get the object from jsbridge. 
         
         Handles lazy loading of all attributes of self."""
-        # Lazy load all the objects from the jsbridge once gettattr gets called.
-        if self._loaded_ is False and not ( name.startswith('__') and name.endswith('__') ):
-            self._load()
-        # A little hack so that ipython returns all the names _after_ loading.
+        # A little hack so that ipython returns all the names.
         if name == '_getAttributeNames':
-            return lambda : dir(self)
-        result = self.__dict__.get(name)
-        if result is None:
-            # According to the Python special class methods specification, __getattr__ failures
-            # should raise attribute error when no attribute is found, returning None causes big 
-            # problems.
-            raise AttributeError(self._name_+' has not attribute '+name)
+            return lambda : self._bridge_.describe(self._name_)['attributes']
+            
+        attributes = self._bridge_.describe(self._name_)['attributes']
+        if name in attributes:
+            return self.__jsget__(self._name_+'.'+name)
         else:
-            return result
+            raise AttributeError(name+" is undefined.")
     
-    def __getitem__(self, name):
-        return self.__jsget__(get_getitem_call(self._name_, name))
+    __getitem__ = __getattr__
         
     def __setattr__(self, name, value):
         """Set the given JSObject as an attribute of this JSObject and make proper javascript
@@ -144,54 +105,30 @@ class JSObject(object):
         if name.startswith('_') and name.endswith('_'):
             return object.__setattr__(self, name, value)
 
-        call, serial_val = get_setattr_call(self._name_, name, value)
-        response = self._repl_.raw_run(call + ' = ' + serial_val)
-        return object.__setattr__(self, name, create_jsobject(self._repl_, call, value))
+        response = self._bridge_.setAttribute(self._name_, name, value)
+        object.__setattr__(self, name, create_jsobject(self._bridge_, response['data'], override_set=True))
     
-    def __setitem__(self, name, value):
-        """Set the given JSObject as an attribute of this JSObject and make proper javascript
-        assignment on the other side of the bridge."""
-        call, serial_val = get_setitem_call(self._name_, name, value)
-        response = self._repl_.raw_run(call + ' = ' + serial_val)
-        return object.__setitem__(self, name, create_jsobject(self._repl_, call, value))
+    __setitem__ = __setattr__
 
-    def _load(self, attributes_dict=None):
-        """Load the full set of lazy loaded jsobjects for this object."""
-        if attributes_dict is None:
-            self._loaded_ = None
-            inspection = self._repl_.run('jsbridge.utils.inspect('+self._name_+')')
-            inspect_dict, obj_type = parse_inspection(inspection)
-            self_dict = create_jsobject_dict(self._repl_, self._name_, inspect_dict)
-        else:
-            self_dict = attributes_dict
-        self.__dict__.update(self_dict)
-        
-        self._loaded_ = True
-        
 class JSFunction(JSObject):
     """Javascript function represenation.
     
     Returns a JSObject instance for the serialized js type with 
     name set to the full javascript call for this function. 
     """    
+    
+    def __init__(self, bridge, name, override_set=False, description=None, *args, **kwargs):
+        self._bridge_ = bridge
+        self._name_ = name
+        self._description_ = description
+    
     def __call__(self, *args, **kwargs):
         assert len(kwargs) is 0
-        fuuid, call = get_function_call(self._name_, args)
-        name = 'jsbridge.controller.JSBridgeController.registry["' + fuuid + '"]'
-        call = name + ' = ' + call
-        self._repl_.run(call)
-        value = self._repl_.run(self._repl_.back_channel.repl_name +'.print(' + name + ')')
-        #Remove trailing endline
-        value = value[:-1]
-        return create_jsobject(self._repl_, name, value)
+        response = self._bridge_.execFunction(self._name_, args)
+        if response['data'] is not None:
+            return create_jsobject(self._bridge_, response['data'], override_set=True)
 
-def init_jsobject(cls, repl, name, value):
-    """Initialize a js object that is a subclassed base type; int, str, unicode, float."""
-    obj = cls(value)
-    obj._repl_ = repl
-    obj._name_ = name
-    return obj
-        
+
 class JSString(JSObject, unicode):
     "Javascript string representation."
     __init__ = unicode.__init__

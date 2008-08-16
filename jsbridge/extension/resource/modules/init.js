@@ -96,7 +96,8 @@ function attachDebuggingToVenkman (item) {
 
 jsbridge.events.addListener('toplevel-window-ready', attachDebuggingToVenkman);
 
-
+jsbridge.server = {}; 
+Components.utils.import('resource://jsbridge/modules/server.js', jsbridge.server);
 // 
 // var mediator = Components.classes['@mozilla.org/appshell/window-mediator;1']
 //          .getService(Components.interfaces.nsIWindowMediator)

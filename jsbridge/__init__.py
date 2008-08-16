@@ -51,6 +51,14 @@ import global_settings
 settings_env = 'JSBRIDGE_SETTINGS_FILE'
 
 back_channel = None
+
+def getBrowserWindow():
+    return JSObject(network.bridge, "Components.classes['@mozilla.org/appshell/window-mediator;1'].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow('')")
+    
+def getPreferencesWindow():
+    bridge = JSObject(network.bridge, "openPreferences()")
+    sleep(1)
+    return bridge
     
 def ipython_shell(locals_dict):
     from IPython.Shell import IPShellEmbed
@@ -89,8 +97,8 @@ def start_from_settings(settings, timeout=10):
         port = int(port)
     
     network.create_network(host, port)
-    bridge = JSObject(network.repl, "Components.classes['@mozilla.org/appshell/window-mediator;1'].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow('')")
-    return bridge
+    browser_window = JSObject(network.bridge, "Components.classes['@mozilla.org/appshell/window-mediator;1'].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow('')")
+    return browser_window
 
 
 def set_debug(settings):
@@ -166,9 +174,9 @@ def main():
         IPython = None    
     if IPython is not None and '--usecode' not in sys.argv:
         sys.argv = sys.argv[:1]
-        ipython_shell({'bridge':bridge})#locals())
+        ipython_shell({'bridge':bridge, 'getBrowserWindow':getBrowserWindow, 'getPreferencesWindow':getPreferencesWindow})#locals())
     else:
-        code_shell({'bridge':bridge})
+        code_shell({'bridge':bridge, 'getBrowserWindow':getBrowserWindow, 'getPreferencesWindow':getPreferencesWindow})
     
     # # There is a bug in some of the traceback code IPython keeps around that causes a strange error here.
     # # The workaround is to remove it from sys.modules
