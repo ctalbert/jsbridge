@@ -98,7 +98,7 @@ class Telnet(object, asyncore.dispatcher):
 
 decoder = simplejson.JSONDecoder()
 
-from simplejson.encoder import encode_basestring_ascii, encode_basestring, floatstr 
+from simplejson.encoder import encode_basestring_ascii, encode_basestring
 
 class JSObjectEncoder(simplejson.JSONEncoder):
     """Encoder that supports jsobject references by name."""
@@ -126,7 +126,7 @@ class JSObjectEncoder(simplejson.JSONEncoder):
         elif isinstance(o, (int, long)):
             yield str(o)
         elif isinstance(o, float):
-            yield floatstr(o, self.allow_nan)
+            yield getattr(simplejson.encoder, 'floatstr', simplejson.encoder._floatstr)(o, self.allow_nan)
         elif isinstance(o, (list, tuple)):
             for chunk in self._iterencode_list(o, markers):
                 yield chunk

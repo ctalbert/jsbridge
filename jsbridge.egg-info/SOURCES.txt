@@ -21,7 +21,7 @@ jsbridge/extension/resource/modules/init.js
 jsbridge/extension/resource/modules/json2.js
 jsbridge/extension/resource/modules/server.js
 jsbridge/extension/resource/modules/utils.js
-jsbridge/xpi/firebug-1.2.0-fx.xpi
+jsbridge/xpi/firebug-1.2.1-fx.xpi
 jsbridge/xpi/javascript_debugger-0.9.87.4-fx+tb+sb+sm.xpi
 jsbridge/xpi/mozlab-current-0.1.9.2008050521.xpi
 jsbridge/xpi/chromebug-trunk/.project
