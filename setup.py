@@ -54,7 +54,7 @@ setup(name=PACKAGE_NAME,
       packages=find_packages(),
       entry_points="""
           [console_scripts]
-          jsbridge = jsbridge:main
+          jsbridge = jsbridge:cli
         """,
       platforms =['Any'],
       install_requires = ['simplejson',

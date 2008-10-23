@@ -91,14 +91,14 @@ def start_from_settings(settings, timeout=10):
             except socket.error:
                 pass
     else:
+        moz = None
         if not settings.has_key('JSBRIDGE_REPL_HOST'):
             settings['JSBRIDGE_REPL_HOST'] =  'localhost:4242'
         host, port = settings['JSBRIDGE_REPL_HOST'].split(':')
         port = int(port)
     
     network.create_network(host, port)
-    browser_window = JSObject(network.bridge, "Components.classes['@mozilla.org/appshell/window-mediator;1'].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow('')")
-    return browser_window
+    return moz
 
 
 def set_debug(settings):
@@ -113,6 +113,8 @@ def set_debug(settings):
                                      #'chrome://chromebug/content/chromebug.xul', 
                                      #'-p', 'chromebug', '-firefox'
                                      ]
+    settings['MOZILLA_PREFERENCES']['extensions.checkCompatibility'] = False                                 
+                                     
     # rdf = open(os.path.join(module_path, 'xpi', 'chromebug-trunk', 'install.rdf.tpl.xml'), 'r').read()
     # rdf = rdf.replace('@FULLVERSION@', '0.1')
     # rdf = rdf.replace('<em:updateURL>@UPDATEPATH@/update.rdf</em:updateURL>\n', '')
@@ -121,9 +123,27 @@ def set_debug(settings):
     # f = open(os.path.join(module_path, 'xpi', 'chromebug-trunk', 'install.rdf'), 'w')
     # f.write(rdf)
     # f.close()
+    return settings 
+
+def get_settings(settings_path=None):
+    if settings_path is not None:
+        settings_path = os.path.abspath(os.path.expanduser(settings_path))
+        os.environ[settings_env] = settings_path
+        
+    settings = simplesettings.initialize_settings(global_settings, sys.modules[__name__],     
+                                                  local_env_variable=settings_env
+                                                  )
     return settings
     
-def main():
+def start(settings=None, start_firefox=False):
+    if settings is None:
+        settings = get_settings()
+    if start_firefox:
+        settings['JSBRIDGE_START_FIREFOX'] = True
+    moz = start_from_settings(settings)
+    return moz
+
+def cli(shell=True):
     parser = optparse.OptionParser()
     parser.add_option("-s", "--settings", dest="settings",
                       help="Settings file for jsbridge.", metavar="JSBRIDGE_SETTINGS_FILE")
@@ -141,14 +161,8 @@ def main():
                       help="Run with firebug, chromebug, venkman, and jsconsole")
     
     (options, args) = parser.parse_args()
-    
     settings_path = getattr(options, 'settings', None)
-    if settings_path is not None:
-        settings_path = os.path.abspath(os.path.expanduser(settings_path))
-        os.environ[settings_env] = settings_path
-        
-    settings = simplesettings.initialize_settings(global_settings, sys.modules[__name__],     
-                                                  local_env_variable=settings_env)
+    settings = get_settings(settings_path)
     
     option_overrides = [('binary', 'MOZILLA_BINARY',),
                         ('profile', 'MOZILLA_PROFILE',),
@@ -162,28 +176,31 @@ def main():
             settings[override] = getattr(options, opt)
     
     if options.debug is True:
-        set_debug(settings)    
-        
-    bridge = start_from_settings(settings)
-    if settings.has_key('moz'):
-        # We want the moz object in the local ns or the shell to access
-        moz = settings['moz']
+        set_debug(settings)
+    
+    moz = start(settings)
+    
+    if shell:
+        try:
+            import IPython
+        except:
+            IPython = None    
+        if IPython is not None and '--usecode' not in sys.argv:
+            sys.argv = sys.argv[:1]
+            bridge = JSObject(network.bridge, "Components.classes['@mozilla.org/appshell/window-mediator;1'].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow('')")
+            ipython_shell({'bridge':bridge, 'getBrowserWindow':getBrowserWindow, 'getPreferencesWindow':getPreferencesWindow})#locals())
+        else:
+            code_shell({'bridge':bridge, 'getBrowserWindow':getBrowserWindow, 'getPreferencesWindow':getPreferencesWindow})
+    elif moz:
+        wait_function = lambda : moz.wait()
+    else:
+        wait_function = lambda : sleep(.25)
     
     try:
-        import IPython
-    except:
-        IPython = None    
-    if IPython is not None and '--usecode' not in sys.argv:
-        sys.argv = sys.argv[:1]
-        ipython_shell({'bridge':bridge, 'getBrowserWindow':getBrowserWindow, 'getPreferencesWindow':getPreferencesWindow})#locals())
-    else:
-        code_shell({'bridge':bridge, 'getBrowserWindow':getBrowserWindow, 'getPreferencesWindow':getPreferencesWindow})
-    
-    # # There is a bug in some of the traceback code IPython keeps around that causes a strange error here.
-    # # The workaround is to remove it from sys.modules
-    # x = sys.modules.pop('IPython', None)
-    # if x is not None:
-    #     del x
-    
-    if settings.has_key('moz'):
+        wait_function()
+    except KeyboardInterrupt:
+        pass
+        
+    if moz:
         moz.stop()
+    

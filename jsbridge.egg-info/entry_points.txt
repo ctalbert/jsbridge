@@ -1,4 +1,4 @@
 
           [console_scripts]
-          jsbridge = jsbridge:main
+          jsbridge = jsbridge:cli
         
