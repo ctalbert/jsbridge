@@ -35,23 +35,17 @@
 // 
 // ***** END LICENSE BLOCK *****
 
-var EXPORTED_SYMBOLS = ["jsbridge"];
+var EXPORTED_SYMBOLS = ["server"];
 
-var hwindow = Components.classes["@mozilla.org/appshell/appShellService;1"]
-         .getService(Components.interfaces.nsIAppShellService)
-         .hiddenDOMWindow;
+// var debugging = {};  Components.utils.import('resource://jsbridge/modules/debugging.js', debugging),
+// var utils = {};      Components.utils.import('resource://jsbridge/modules/utils.js', utils),
+var server = {}; Components.utils.import('resource://jsbridge/modules/server.js', server);
 
-jsbridge = {
-    controller: Components.utils.import('resource://jsbridge/modules/controller.js'),
-    debugging:  Components.utils.import('resource://jsbridge/modules/debugging.js'),
-    events:     Components.utils.import('resource://jsbridge/modules/events.js'),
-    utils:      Components.utils.import('resource://jsbridge/modules/utils.js'),
-}
-jsbridge.controller.JSBridgeController.jsbridge = jsbridge;
-
-function printEvent (item) {
-    jsbridge.controller.JSBridgeController.bridgeRepl[0].print(item.topic);
-}
+// jsbridge.controller.JSBridgeController.jsbridge = jsbridge;
+// 
+// function printEvent (item) {
+//     jsbridge.controller.JSBridgeController.bridgeRepl[0].print(item.topic);
+// }
 
 // jsbridge.events.addListener('domwindowopened', printEvent);
 // jsbridge.events.addListener('toplevel-window-ready', printEvent);
@@ -61,43 +55,42 @@ function printEvent (item) {
 // jsbridge.events.addListener('dom-window-destroyed', printEvent);
 
 
-function attachToNewWindow (item) {
-    item.subject.jsbridge = jsbridge;
-    item.subject._hwindow = hwindow;
-}
+// function attachToNewWindow (item) {
+//     item.subject.jsbridge = jsbridge;
+//     item.subject._hwindow = hwindow;
+// }
 
-jsbridge.events.addListener('domwindowopened', attachToNewWindow);
+// jsbridge.events.addListener('domwindowopened', attachToNewWindow);
 
-hwindow.jsbridge = jsbridge;
+// hwindow.jsbridge = jsbridge;
 
-var enumerator = Components.classes["@mozilla.org/appshell/window-mediator;1"]
-                   .getService(Components.interfaces.nsIWindowMediator)
-                   .getEnumerator("");
-while(enumerator.hasMoreElements()) {
-    var win = enumerator.getNext();
-    attachToNewWindow({"subject":win});
-}
+// var enumerator = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+//                    .getService(Components.interfaces.nsIWindowMediator)
+//                    .getEnumerator("");
+// while(enumerator.hasMoreElements()) {
+//     var win = enumerator.getNext();
+//     attachToNewWindow({"subject":win});
+// }
+// 
+// function attachDebuggingToVenkman (item) {
+//     // jsbridge.controller.JSBridgeController.bridgeRepl[0].print('here '+typeof(item.subject.print))
+//     function attach() {
+//         // jsbridge.controller.JSBridgeController.bridgeRepl[0].print(
+//         //     jsbridge.controller.jsonEncode([prop for (prop in item.subject)])
+//         // );
+//         if (item.subject.display != undefined) {
+//             item.subject.inspect = jsbridge.debugging.dinspect;
+//             hwindow.venkmanDisplay = item.subject.display;
+//         }
+//     }
+//     
+//     item.subject.addEventListener("load", attach, false) 
+// }
+// 
+// 
+// jsbridge.events.addListener('toplevel-window-ready', attachDebuggingToVenkman);
 
-function attachDebuggingToVenkman (item) {
-    // jsbridge.controller.JSBridgeController.bridgeRepl[0].print('here '+typeof(item.subject.print))
-    function attach() {
-        // jsbridge.controller.JSBridgeController.bridgeRepl[0].print(
-        //     jsbridge.controller.jsonEncode([prop for (prop in item.subject)])
-        // );
-        if (item.subject.display != undefined) {
-            item.subject.inspect = jsbridge.debugging.dinspect;
-            hwindow.venkmanDisplay = item.subject.display;
-        }
-    }
-    
-    item.subject.addEventListener("load", attach, false) 
-}
 
-
-jsbridge.events.addListener('toplevel-window-ready', attachDebuggingToVenkman);
-
-jsbridge.server = {}; 
-Components.utils.import('resource://jsbridge/modules/server.js', jsbridge.server);
 // 
 // var mediator = Components.classes['@mozilla.org/appshell/window-mediator;1']
 //          .getService(Components.interfaces.nsIWindowMediator)

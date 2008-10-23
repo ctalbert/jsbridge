@@ -108,7 +108,11 @@ Bridge.prototype.register = function (uuid, _type) {
 }
 Bridge.prototype._describe = function (obj) {
   var response = {};
-  var type = typeof(obj);
+  if (obj == null) {
+    var type = "null";
+  } else {
+    var type = typeof(obj);
+  }
   if (type == "object") {
     if (obj.length != undefined) {
       var type = "array";
