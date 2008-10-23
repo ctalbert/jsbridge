@@ -37,25 +37,32 @@
 
 import network
 
-uuid_callback_index = {}
-event_callback_index = {}
+uuid_listener_index = {}
+event_listener_index = {}
+global_listeners = [];
 
-def add_callback(callback, uuid=None, event=None):
+def add_listener(callback, uuid=None, event=None):
     if uuid is not None:
-        uuid_callback_index[uuid] = uuid_callback_index.get(uuid, []) + [callback]
+        uuid_listener_index[uuid] = uuid_listener_index.get(uuid, []) + [callback]
     if event is not None:
-        event_callback_index[event] = event_callback_index.get(event, []) [callback]    
+        event_listener_index[event] = event_listener_index.get(event, []) [callback]    
         back_channel = getattr(network, 'back_channel', None)
         if back_channel is not None:
             back_channel.addBridgeListener(event)
         else:
             network.back_channel_on_connect_events.append(event)
+
+def add_global_listener(callback):
+    global_listeners.append(callback)
     
-def fire_event(eventType, uuid, result):
+def fire_event(eventType, uuid=None, result=None):
     event = eventType
-    if uuid_callback_index.has_key(uuid):
-        for callback in uuid_callback_index[uuid]:
+    if uuid_listener_index.has_key(uuid):
+        for callback in uuid_listener_index[uuid]:
             callback(result)
-    if event_callback_index.has_key(event):
-        for callback in event_callback_index[event]:
+    if event_listener_index.has_key(event):
+        for callback in event_listener_index[event]:
             callback(result)
+    for listener in global_listeners:
+        listener(eventType, result)
+

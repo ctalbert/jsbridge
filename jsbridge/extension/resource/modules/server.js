@@ -36,7 +36,7 @@
 // 
 // ***** END LICENSE BLOCK *****
 
-var EXPORTED_SYMBOLS = ["Server", "server", "AsyncRead", "Session", "sessions", "globalRegistry"];
+var EXPORTED_SYMBOLS = ["Server", "server", "AsyncRead", "Session", "sessions", "globalRegistry", "Events"];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
@@ -78,7 +78,7 @@ var Events = {
     }
   },
   addBackChannel : function (backchannel) {
-    this.backchannels = this.backchannels.concat(backchannel);
+    this.backchannels.push(backchannel);
   },
 }
 

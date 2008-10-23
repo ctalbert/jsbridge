@@ -155,10 +155,12 @@ def cli(shell=True):
                       help="Launch a new firefox instance.", metavar=None)
     parser.add_option('-u', "--host", dest='host', 
                       help="The hostname:port pairing to connect to mozrepl.")
-                      
     parser.add_option("-z", "--debug",
                       action="store_true", dest="debug", default=False,
                       help="Run with firebug, chromebug, venkman, and jsconsole")
+    parser.add_option("-a", "--showall", 
+                      action="store_true", dest="showall", default=False,
+                      help="Show all back_channel logger output.")
     
     (options, args) = parser.parse_args()
     settings_path = getattr(options, 'settings', None)
@@ -178,6 +180,12 @@ def cli(shell=True):
     if options.debug is True:
         set_debug(settings)
     
+    if options.showall:
+        import events
+        def showall(e, result):
+            print(e+": "+repr(result))
+        events.add_global_listener(showall)
+    
     moz = start(settings)
     
     if shell:
@@ -188,19 +196,25 @@ def cli(shell=True):
         if IPython is not None and '--usecode' not in sys.argv:
             sys.argv = sys.argv[:1]
             bridge = JSObject(network.bridge, "Components.classes['@mozilla.org/appshell/window-mediator;1'].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow('')")
-            ipython_shell({'bridge':bridge, 'getBrowserWindow':getBrowserWindow, 'getPreferencesWindow':getPreferencesWindow})#locals())
+            ipython_shell({'bridge':bridge, 
+                           'getBrowserWindow':getBrowserWindow, 'getPreferencesWindow':getPreferencesWindow})#locals())
         else:
             code_shell({'bridge':bridge, 'getBrowserWindow':getBrowserWindow, 'getPreferencesWindow':getPreferencesWindow})
+        wait_function = None
     elif moz:
         wait_function = lambda : moz.wait()
     else:
         wait_function = lambda : sleep(.25)
     
-    try:
-        wait_function()
-    except KeyboardInterrupt:
-        pass
+    if wait_function:
+        try:
+            wait_function()
+        except KeyboardInterrupt:
+            pass
         
     if moz:
-        moz.stop()
+        try:
+            moz.stop()
+        except:
+            pass
     

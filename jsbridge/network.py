@@ -43,7 +43,7 @@ from time import sleep
 
 import simplejson
 
-import callbacks
+import events
 
 logger = logging.getLogger(__name__)
 
@@ -77,7 +77,6 @@ class Telnet(object, asyncore.dispatcher):
         self.buffer = self.buffer[sent:]
         
     def send(self, b):
-        #print b
         asyncore.dispatcher.send(self, b)
 
     def read_all(self):
@@ -154,9 +153,12 @@ class Bridge(Telnet):
     events_list = []
 
     callbacks = {}
-
+    
+    bridge_type = "bridge"
+    
     def __init__(self, *args, **kwargs):
         Telnet.__init__(self, *args, **kwargs)  
+        self.connect(args)
     
     def handle_connect(self):
         self.register()
@@ -175,7 +177,7 @@ class Bridge(Telnet):
         
     def register(self):
         _uuid = str(uuid.uuid1())
-        self.send('bridge.register("'+_uuid+'", "bridge")\r\n')
+        self.send('bridge.register("'+_uuid+'", "'+self.bridge_type+'")\r\n')
 
     def execFunction(self, func_name, args, interval=.25):
         _uuid = str(uuid.uuid1())
@@ -219,22 +221,24 @@ class Bridge(Telnet):
                 self.sbuffer = self.sbuffer[index:]
         
 class BridgeBackChannel(Bridge):
+    
+    bridge_type = "backchannel"
         
     def fire_callbacks(self, obj):
         """Handle all callback fireing on json objects pulled from the data stream."""
-        callbacks.fire_event(**dict([(str(key), value,) for key, value in obj.items()]))
-        
-    def register(self):
-        _uuid = str(uuid.uuid1())
-        self.send('bridge.register("'+_uuid+'", "backchannel")\r\n')
+        events.fire_event(**dict([(str(key), value,) for key, value in obj.items()]))
+
 
 def create_network(hostname, port):
+    
     global back_channel, bridge
     back_channel = BridgeBackChannel(hostname, port)
     bridge = Bridge(hostname, port)
+    
     from threading import Thread
     global thread
     thread = Thread(target=asyncore.loop)
     getattr(thread, 'setDaemon', lambda x : None)(True)
     thread.start()
+    
     return back_channel, bridge
