@@ -41,7 +41,10 @@ import logging
 import uuid
 from time import sleep
 
-import simplejson
+try:
+    import json as simplejson
+except:
+    import simplejson
 
 import events
 
@@ -97,7 +100,10 @@ class Telnet(object, asyncore.dispatcher):
 
 decoder = simplejson.JSONDecoder()
 
-from simplejson.encoder import encode_basestring_ascii, encode_basestring
+try:
+    from json.encoder import encode_basestring_ascii, encode_basestring
+except:
+    from simplejson.encoder import encode_basestring_ascii, encode_basestring
 
 class JSObjectEncoder(simplejson.JSONEncoder):
     """Encoder that supports jsobject references by name."""
