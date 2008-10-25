@@ -74,7 +74,7 @@ var Events = {
   'backchannels' : [],
   fireEvent : function (name, obj) {
     for (i in this.backchannels) {
-      this.backchannels[i].session.encodeOut({'result':true, 'eventType':name, 'result':obj});
+      this.backchannels[i].session.encodeOut({'eventType':name, 'result':obj});
     }
   },
   addBackChannel : function (backchannel) {
@@ -163,14 +163,15 @@ Bridge.prototype._execFunction = function (func, args) {
 }
 Bridge.prototype.execFunction = function (uuid, func, args) {
   try {
-    var result = this._execFunction(func, args);
+    var data = this._execFunction(func, args);
+    var result = true;
   } catch(e) {
     this.session.encodeOut({'result':false, 'exception':{'name':e.name, 'message':e.message}, 'uuid':uuid});
-    failed = true;
+    var result = true;
   }  
-  if (result != undefined) {
-    this.set(uuid, result);
-  } else if (failed != undefined) {
+  if (data != undefined) {
+    this.set(uuid, data);
+  } else if ( result == true) {
     this.session.encodeOut({'result':true, 'data':null, 'uuid':uuid});
   }
 }

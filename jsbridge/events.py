@@ -35,8 +35,6 @@
 # 
 # ***** END LICENSE BLOCK *****
 
-import network
-
 uuid_listener_index = {}
 event_listener_index = {}
 global_listeners = [];
@@ -45,12 +43,7 @@ def add_listener(callback, uuid=None, event=None):
     if uuid is not None:
         uuid_listener_index[uuid] = uuid_listener_index.get(uuid, []) + [callback]
     if event is not None:
-        event_listener_index[event] = event_listener_index.get(event, []) [callback]    
-        back_channel = getattr(network, 'back_channel', None)
-        if back_channel is not None:
-            back_channel.addBridgeListener(event)
-        else:
-            network.back_channel_on_connect_events.append(event)
+        event_listener_index[event] = event_listener_index.get(event, []) + [callback]    
 
 def add_global_listener(callback):
     global_listeners.append(callback)

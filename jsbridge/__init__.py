@@ -143,26 +143,28 @@ def start(settings=None, start_firefox=False):
     moz = start_from_settings(settings)
     return moz
 
-def cli(shell=True):
-    parser = optparse.OptionParser()
-    parser.add_option("-s", "--settings", dest="settings",
-                      help="Settings file for jsbridge.", metavar="JSBRIDGE_SETTINGS_FILE")
-    parser.add_option("-b", "--binary", dest="binary",
-                      help="Binary path.", metavar=None)
-    parser.add_option("-d", "--default-profile", dest="default-profile",
-                      help="Default profile path.", metavar=None)
-    parser.add_option('-l', "--launch", dest="launch", action="store_true",
-                      help="Launch a new firefox instance.", metavar=None)
-    parser.add_option('-u', "--host", dest='host', 
-                      help="The hostname:port pairing to connect to mozrepl.")
-    parser.add_option("-z", "--debug",
-                      action="store_true", dest="debug", default=False,
-                      help="Run with firebug, chromebug, venkman, and jsconsole")
-    parser.add_option("-a", "--showall", 
-                      action="store_true", dest="showall", default=False,
-                      help="Show all back_channel logger output.")
-    
-    (options, args) = parser.parse_args()
+parser = optparse.OptionParser()
+parser.add_option("-s", "--settings", dest="settings",
+                  help="Settings file for jsbridge.", metavar="JSBRIDGE_SETTINGS_FILE")
+parser.add_option("-b", "--binary", dest="binary",
+                  help="Binary path.", metavar=None)
+parser.add_option("-d", "--default-profile", dest="default-profile",
+                  help="Default profile path.", metavar=None)
+parser.add_option('-l', "--launch", dest="launch", action="store_true",
+                  help="Launch a new firefox instance.", metavar=None)
+parser.add_option('-u', "--host", dest='host', 
+                  help="The hostname:port pairing to connect to mozrepl.")
+parser.add_option("-z", "--debug",
+                  action="store_true", dest="debug", default=False,
+                  help="Run with firebug, chromebug, venkman, and jsconsole")
+parser.add_option("-a", "--showall", 
+                  action="store_true", dest="showall", default=False,
+                  help="Show all back_channel logger output.")
+
+def cli(shell=True, parser=parser, block=True, options=None):    
+    """Command line interface for jsbridge."""
+    if options is None:
+        (options, args) = parser.parse_args()
     settings_path = getattr(options, 'settings', None)
     settings = get_settings(settings_path)
     
@@ -188,33 +190,35 @@ def cli(shell=True):
     
     moz = start(settings)
     
-    if shell:
-        try:
-            import IPython
-        except:
-            IPython = None    
-        if IPython is not None and '--usecode' not in sys.argv:
-            sys.argv = sys.argv[:1]
-            bridge = JSObject(network.bridge, "Components.classes['@mozilla.org/appshell/window-mediator;1'].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow('')")
-            ipython_shell({'bridge':bridge, 
-                           'getBrowserWindow':getBrowserWindow, 'getPreferencesWindow':getPreferencesWindow})#locals())
+    if block:
+        if shell:
+            try:
+                import IPython
+            except:
+                IPython = None    
+            if IPython is not None and '--usecode' not in sys.argv:
+                sys.argv = sys.argv[:1]
+                bridge = JSObject(network.bridge, "Components.classes['@mozilla.org/appshell/window-mediator;1'].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow('')")
+                ipython_shell({'bridge':bridge, 
+                               'getBrowserWindow':getBrowserWindow, 'getPreferencesWindow':getPreferencesWindow})#locals())
+            else:
+                code_shell({'bridge':bridge, 'getBrowserWindow':getBrowserWindow, 'getPreferencesWindow':getPreferencesWindow})
+            wait_function = None
+        elif moz:
+            wait_function = lambda : moz.wait()
         else:
-            code_shell({'bridge':bridge, 'getBrowserWindow':getBrowserWindow, 'getPreferencesWindow':getPreferencesWindow})
-        wait_function = None
-    elif moz:
-        wait_function = lambda : moz.wait()
-    else:
-        wait_function = lambda : sleep(.25)
+            wait_function = lambda : sleep(.25)
     
-    if wait_function:
-        try:
-            wait_function()
-        except KeyboardInterrupt:
-            pass
+        if wait_function:
+            try:
+                wait_function()
+            except KeyboardInterrupt:
+                pass
         
-    if moz:
-        try:
-            moz.stop()
-        except:
-            pass
-    
+        if moz:
+            try:
+                moz.stop()
+            except:
+                pass
+    else:
+        return moz
