@@ -152,8 +152,6 @@ parser.add_option("-d", "--default-profile", dest="default-profile",
                   help="Default profile path.", metavar=None)
 parser.add_option('-l', "--launch", dest="launch", action="store_true",
                   help="Launch a new firefox instance.", metavar=None)
-parser.add_option('-u', "--host", dest='host', 
-                  help="The hostname:port pairing to connect to mozrepl.")
 parser.add_option("-z", "--debug",
                   action="store_true", dest="debug", default=False,
                   help="Run with firebug, chromebug, venkman, and jsconsole")
@@ -207,8 +205,10 @@ def cli(shell=True, parser=parser, block=True, options=None):
         elif moz:
             wait_function = lambda : moz.wait()
         else:
-            wait_function = lambda : sleep(.25)
-    
+            def wait_function():
+                while 1:
+                    sleep(.25)
+                    
         if wait_function:
             try:
                 wait_function()

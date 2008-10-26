@@ -64,11 +64,8 @@ class Telnet(object, asyncore.dispatcher):
     def __del__(self):
         self.close()
 
-    def handle_connect(self):
-        self.logger.debug('Connected '+self.host+' on port '+str(self.port))
-        
     def handle_close(self):
-        self.logger.debug('Closed '+self.host+' on port '+str(self.port))
+        self.close()
 
     def handle_expt(self): self.close() # connection failed, shutdown
     
@@ -93,7 +90,6 @@ class Telnet(object, asyncore.dispatcher):
 
     def handle_read(self):
         self.data = self.read_all()
-        logger.debug('Raw RECV::'+self.data)
         self.process_read(self.data)
         
     read_callback = lambda self, data: None
