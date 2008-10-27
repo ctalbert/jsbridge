@@ -36,7 +36,9 @@
 // 
 // ***** END LICENSE BLOCK *****
 
-var EXPORTED_SYMBOLS = ["Server", "server", "AsyncRead", "Session", "sessions", "globalRegistry", "Events"];
+var EXPORTED_SYMBOLS = ["Server", "server", "AsyncRead", "Session", "sessions", "globalRegistry"];
+
+var events = {}; Components.utils.import("resource://jsbridge/modules/events.js", events);
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
@@ -70,17 +72,7 @@ AsyncRead.prototype.onDataAvailable = function (request, context, inputStream, o
   this.session.receive(str.value);
 }
 
-var Events = {
-  'backchannels' : [],
-  fireEvent : function (name, obj) {
-    for (i in this.backchannels) {
-      this.backchannels[i].session.encodeOut({'eventType':name, 'result':obj});
-    }
-  },
-  addBackChannel : function (backchannel) {
-    this.backchannels.push(backchannel);
-  },
-}
+
 
 globalRegistry = {};
 
@@ -91,7 +83,7 @@ function Bridge (session) {
 Bridge.prototype._register = function (_type) {
   this.bridgeType = _type;
   if (_type == "backchannel") {
-    Events.addBackChannel(this);
+    events.addBackChannel(this);
   }
 }
 Bridge.prototype.register = function (uuid, _type) {

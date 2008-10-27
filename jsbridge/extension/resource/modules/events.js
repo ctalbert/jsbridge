@@ -1,6 +1,13 @@
-var EXPORTED_SYMBOLS = ["fireEvent"]
+var EXPORTED_SYMBOLS = ["backchannels", "fireEvent", "addBackChannel"];
 
-var server = {}; Components.utils.import('resource://jsbridge/modules/server.js', server);
+var backchannels = [];
 
-var fireEvent = server.Events.fireEvent;
+var fireEvent = function (name, obj) {
+  for each(backchannel in backchannels) {
+    backchannel.session.encodeOut({'eventType':name, 'result':obj});
+  }
+}
 
+var addBackChannel = function (backchannel) {
+    backchannels.push(backchannel);
+}
