@@ -48,12 +48,12 @@ def add_listener(callback, uuid=None, event=None):
 def add_global_listener(callback):
     global_listeners.append(callback)
     
-def fire_event(eventType, uuid=None, result=None):
+def fire_event(eventType=None, uuid=None, result=None, exception=None):
     event = eventType
-    if uuid_listener_index.has_key(uuid):
+    if uuid is not None and uuid_listener_index.has_key(uuid):
         for callback in uuid_listener_index[uuid]:
             callback(result)
-    if event_listener_index.has_key(event):
+    if event is not None and event_listener_index.has_key(event):
         for callback in event_listener_index[event]:
             callback(result)
     for listener in global_listeners:
