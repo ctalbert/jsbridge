@@ -106,23 +106,14 @@ def set_debug(settings):
     module_path = global_settings.module_path   
     settings['MOZILLA_PLUGINS'] += [os.path.join(module_path, 'xpi',
                                         'javascript_debugger-0.9.87.4-fx+tb+sb+sm.xpi'),
-                                    os.path.join(module_path, 'xpi', 'firebug-1.2.1-fx.xpi'),
-                                    # os.path.join(module_path, 'xpi', 'chromebug-trunk'),
+                                    os.path.join(module_path, 'xpi', 'firebug-1.4.0a3.xpi'),
+                                    os.path.join(module_path, 'xpi', 'chromebug-0.4.0a2.xpi'),
                                     ]
-    settings['MOZILLA_CMD_ARGS'] += ['-jsconsole', #'-chrome', 
-                                     #'chrome://chromebug/content/chromebug.xul', 
-                                     #'-p', 'chromebug', '-firefox'
+    settings['MOZILLA_CMD_ARGS'] += ['-jsconsole', '-chrome', 
+                                     'chrome://chromebug/content/chromebug.xul', 
+                                     '-p', 'chromebug', '-firefox'
                                      ]
     settings['MOZILLA_PREFERENCES']['extensions.checkCompatibility'] = False                                 
-                                     
-    # rdf = open(os.path.join(module_path, 'xpi', 'chromebug-trunk', 'install.rdf.tpl.xml'), 'r').read()
-    # rdf = rdf.replace('@FULLVERSION@', '0.1')
-    # rdf = rdf.replace('<em:updateURL>@UPDATEPATH@/update.rdf</em:updateURL>\n', '')
-    # rdf = rdf.replace('<em:homepageURL>@UPDATEPATH@/index.html</em:homepageURL>\n', '')
-    # rdf = rdf.replace('<em:updateKey>ToBeReplaceByAValueFromMcCoy</em:updateKey>\n', '')
-    # f = open(os.path.join(module_path, 'xpi', 'chromebug-trunk', 'install.rdf'), 'w')
-    # f.write(rdf)
-    # f.close()
     return settings 
 
 def get_settings(settings_path=None):
