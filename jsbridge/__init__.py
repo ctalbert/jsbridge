@@ -123,7 +123,11 @@ def get_settings(settings_path=None):
         
     settings = simplesettings.initialize_settings(global_settings, sys.modules[__name__],     
                                                   local_env_variable=settings_env
-                                                  )
+    
+    if settings.has_key('MOZILLA_PLUGINS'):                                                  )
+        settings['MOZILLA_PLUGINS'].append(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'extension'))
+    else:
+        settings['MOZILLA_PLUGINS'] = [os.path.join(os.path.abspath(os.path.dirname(__file__)), 'extension')]
     return settings
     
 def start(settings=None, start_firefox=False):
