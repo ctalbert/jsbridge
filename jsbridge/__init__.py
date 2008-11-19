@@ -122,9 +122,9 @@ def get_settings(settings_path=None):
         os.environ[settings_env] = settings_path
         
     settings = simplesettings.initialize_settings(global_settings, sys.modules[__name__],     
-                                                  local_env_variable=settings_env
+                                                  local_env_variable=settings_env)
     
-    if settings.has_key('MOZILLA_PLUGINS'):                                                  )
+    if settings.has_key('MOZILLA_PLUGINS'):           
         settings['MOZILLA_PLUGINS'].append(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'extension'))
     else:
         settings['MOZILLA_PLUGINS'] = [os.path.join(os.path.abspath(os.path.dirname(__file__)), 'extension')]
