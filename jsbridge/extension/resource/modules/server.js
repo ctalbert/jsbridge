@@ -91,7 +91,12 @@ Bridge.prototype.register = function (uuid, _type) {
     this._register(_type);
     var passed = true;
   } catch(e) {
-    this.session.encodeOut({'result':false, 'exception':{'name':e.name, 'message':e.message}, 'uuid':uuid});
+    if (typeof(e) == "string") {
+      var exception = e;
+    } else {
+      var exception = {'name':e.name, 'message':e.message};
+    }
+    this.session.encodeOut({'result':false, 'exception':exception, 'uuid':uuid});
   }
   if (passed != undefined) {
     this.session.encodeOut({"result":true, 'eventType':'register', 'uuid':uuid});
@@ -144,7 +149,12 @@ Bridge.prototype.setAttribute = function (uuid, obj, name, value) {
   try {
     var result = this._setAttribute(obj, name, value);
   } catch(e) {
-    this.session.encodeOut({'result':false, 'exception':{'name':e.name, 'message':e.message}, 'uuid':uuid});
+    if (typeof(e) == "string") {
+      var exception = e;
+    } else {
+      var exception = {'name':e.name, 'message':e.message};
+    }
+    this.session.encodeOut({'result':false, 'exception':exception, 'uuid':uuid});
   }
   if (result != undefined) {
     this.set(uuid, obj[name]);
@@ -158,13 +168,20 @@ Bridge.prototype.execFunction = function (uuid, func, args) {
     var data = this._execFunction(func, args);
     var result = true;
   } catch(e) {
-    this.session.encodeOut({'result':false, 'exception':{'name':e.name, 'message':e.message}, 'uuid':uuid});
+    if (typeof(e) == "string") {
+      var exception = e;
+    } else {
+      var exception = {'name':e.name, 'message':e.message};
+    }
+    this.session.encodeOut({'result':false, 'exception':exception, 'uuid':uuid});
     var result = true;
   }  
   if (data != undefined) {
     this.set(uuid, data);
   } else if ( result == true) {
     this.session.encodeOut({'result':true, 'data':null, 'uuid':uuid});
+  } else {
+    throw 'Something very bad happened.'
   }
 }
 
@@ -194,7 +211,15 @@ function Session (transport) {
 }
 Session.prototype.onOutput = function(string) {
   // log('jsbridge write: '+string)
-  this.outstream.write(string, string.length);
+  if (typeof(string) != "string") {
+    throw "This is not a string"
+  } 
+  try {
+    this.outstream.write(string, string.length);
+  } catch (e) {
+    throw "Why is this failing "+string
+  }
+  // this.outstream.write(string, string.length);
 };
 Session.prototype.onQuit = function() {
   this.instream.close();
@@ -205,7 +230,12 @@ Session.prototype.encodeOut = function (obj) {
   try {
     this.onOutput(jsonEncode(obj));
   } catch(e) {
-    this.onOutput(jsonEncode({'result':false, 'exception':{'name':e.name, 'message':e.message}}));
+    if (typeof(e) == "string") {
+      var exception = e;
+    } else {
+      var exception = {'name':e.name, 'message':e.message};
+    }
+    this.onOutput(jsonEncode({'result':false, 'exception':exception}));
   }
   
 }
