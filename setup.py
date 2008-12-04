@@ -41,7 +41,7 @@ desc = """Python to JavaScript bridge interface."""
 summ = """A powerful and extensible Python to JavaScript bridge interface. Currently works with any mozilla application through the MozRepl plugin."""
 
 PACKAGE_NAME = "jsbridge"
-PACKAGE_VERSION = "0.9.3"
+PACKAGE_VERSION = "0.9.4"
 
 setup(name=PACKAGE_NAME,
       version=PACKAGE_VERSION,
@@ -52,6 +52,7 @@ setup(name=PACKAGE_NAME,
       #url='',
       license='http://www.apache.org/licenses/LICENSE-2.0',
       packages=find_packages(exclude=['test']),
+      include_package_data=True,
       package_data = {'': ['*.js', '*.css', '*.html', '*.txt', '*.xpi', '*.rdf', '*.xul', '*.jsm', '*.xml' ],},
       entry_points="""
           [console_scripts]
