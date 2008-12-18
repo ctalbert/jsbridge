@@ -69,35 +69,40 @@ def code_shell(locals_dict):
     import code
     code.interact(local=locals_dict)    
     
+def start_moz(moz, timeout=10):
+    if not settings.has_key('JSBRIDGE_REPL_HOST'):
+        settings['JSBRIDGE_REPL_HOST'] = 'localhost:24242'
+    host, port = settings['JSBRIDGE_REPL_HOST'].split(':')
+    port = int(port)
+    
+    moz.start()
+    print 'Started ', moz.command
+    ttl = 0
+    while ttl < timeout:
+        sleep(.25)
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.connect((host, port))
+            s.close()
+            break
+        except socket.error:
+            pass
+    network.create_network(host, port)
+    
 def start_from_settings(settings, timeout=10):
     """Start the jsbridge from a setings dict"""
     if settings['JSBRIDGE_START_FIREFOX']:
-        if not settings.has_key('JSBRIDGE_REPL_HOST'):
-            settings['JSBRIDGE_REPL_HOST'] = 'localhost:24242'
-        host, port = settings['JSBRIDGE_REPL_HOST'].split(':')
-        port = int(port)
         moz = mozrunner.get_moz_from_settings(settings)
-        moz.start()
-        print 'Started ', moz.command
         settings['moz'] = moz
-        ttl = 0
-        while ttl < timeout:
-            sleep(.25)
-            try:
-                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                s.connect((host, port))
-                s.close()
-                break
-            except socket.error:
-                pass
+        start_moz(moz, timeout)
+        
     else:
         moz = None
         if not settings.has_key('JSBRIDGE_REPL_HOST'):
             settings['JSBRIDGE_REPL_HOST'] =  'localhost:4242'
         host, port = settings['JSBRIDGE_REPL_HOST'].split(':')
         port = int(port)
-    
-    network.create_network(host, port)
+        network.create_network(host, port)
     return moz
 
 
@@ -106,12 +111,12 @@ def set_debug(settings):
     module_path = global_settings.module_path   
     settings['MOZILLA_PLUGINS'] += [os.path.join(module_path, 'xpi',
                                         'javascript_debugger-0.9.87.4-fx+tb+sb+sm.xpi'),
-                                    os.path.join(module_path, 'xpi', 'firebug-1.4.0a3.xpi'),
-                                    os.path.join(module_path, 'xpi', 'chromebug-0.4.0a2.xpi'),
+                                    # os.path.join(module_path, 'xpi', 'firebug-1.4.0a3.xpi'),
+                                    # os.path.join(module_path, 'xpi', 'chromebug-0.4.0a2.xpi'),
                                     ]
-    settings['MOZILLA_CMD_ARGS'] += ['-jsconsole', '-chrome', 
-                                     'chrome://chromebug/content/chromebug.xul', 
-                                     '-p', 'chromebug', '-firefox'
+    settings['MOZILLA_CMD_ARGS'] += ['-jsconsole', # '-chrome', 
+    #                                      'chrome://chromebug/content/chromebug.xul', 
+    #                                      '-p', 'chromebug', '-firefox'
                                      ]
     settings['MOZILLA_PREFERENCES']['extensions.checkCompatibility'] = False                                 
     return settings 
