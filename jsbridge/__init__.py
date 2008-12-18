@@ -99,7 +99,7 @@ def start_from_settings(settings, timeout=10):
     else:
         moz = None
         if not settings.has_key('JSBRIDGE_REPL_HOST'):
-            settings['JSBRIDGE_REPL_HOST'] =  'localhost:4242'
+            settings['JSBRIDGE_REPL_HOST'] =  'localhost:24242'
         host, port = settings['JSBRIDGE_REPL_HOST'].split(':')
         port = int(port)
         network.create_network(host, port)
