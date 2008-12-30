@@ -119,7 +119,7 @@ Bridge.prototype._describe = function (obj) {
       response.attributes = response.attributes.concat(i);
     }
   }
-  else {
+  else if (type != "function"){
     response.data = obj;
   }
   response.type = type;
