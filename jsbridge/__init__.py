@@ -112,7 +112,7 @@ def set_debug(settings):
     settings['MOZILLA_PLUGINS'] += [os.path.join(module_path, 'xpi',
                                         'javascript_debugger-0.9.87.4-fx+tb+sb+sm.xpi'),
                                     # os.path.join(module_path, 'xpi', 'firebug-1.4.0a3.xpi'),
-                                    # os.path.join(module_path, 'xpi', 'chromebug-0.4.0a2.xpi'),
+                                    # os.path.join(module_path, 'xpi', 'chromebug-0.5.0a1.xpi'),
                                     ]
     settings['MOZILLA_CMD_ARGS'] += ['-jsconsole', # '-chrome', 
     #                                      'chrome://chromebug/content/chromebug.xul', 
