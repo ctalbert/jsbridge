@@ -41,7 +41,7 @@ desc = """Python to JavaScript bridge interface."""
 summ = """A powerful and extensible Python to JavaScript bridge interface. Currently works with any mozilla application through the MozRepl plugin."""
 
 PACKAGE_NAME = "jsbridge"
-PACKAGE_VERSION = "1.0"
+PACKAGE_VERSION = "1.1"
 
 setup(name=PACKAGE_NAME,
       version=PACKAGE_VERSION,
@@ -60,7 +60,7 @@ setup(name=PACKAGE_NAME,
         """,
       platforms =['Any'],
       install_requires = ['simplejson',
-                          'mozrunner >= 0.3',
+                          'mozrunner <= 1.9.9',
                           ],
       classifiers=['Development Status :: 4 - Beta',
                    'Environment :: Console',
