@@ -40,6 +40,7 @@ import socket
 import logging
 import uuid
 from time import sleep
+from threading import Thread
 
 try:
     import json as simplejson
@@ -225,20 +226,42 @@ class Bridge(Telnet):
 class BridgeBackChannel(Bridge):
     
     bridge_type = "backchannel"
+    
+    def __init__(self, *args, **kwargs):
+        super(BridgeBackChannel, self).__init__(*args, **kwargs)
+        self.uuid_listener_index = {}
+        self.event_listener_index = {}
+        self.global_listeners = []
         
     def fire_callbacks(self, obj):
         """Handle all callback fireing on json objects pulled from the data stream."""
-        events.fire_event(**dict([(str(key), value,) for key, value in obj.items()]))
+        self.fire_event(**dict([(str(key), value,) for key, value in obj.items()]))
 
+    def add_listener(callback, uuid=None, event=None):
+        if uuid is not None:
+            self.uuid_listener_index.setdefault(uuid, []).append(callback)
+        if event is not None:
+            self.event_listener_index.setdefault(event, []).append(callback)
+
+    def add_global_listener(callback):
+        self.global_listeners.append(callback)
+
+    def fire_event(eventType=None, uuid=None, result=None, exception=None):
+        event = eventType
+        if uuid is not None and self.uuid_listener_index.has_key(uuid):
+            for callback in uuid_listener_index[uuid]:
+                callback(result)
+        if event is not None and self.event_listener_index.has_key(event):
+            for callback in event_listener_index[event]:
+                callback(result)
+        for listener in self.global_listeners:
+            listener(eventType, result)
 
 def create_network(hostname, port):
     
-    global back_channel, bridge
     back_channel = BridgeBackChannel(hostname, port)
     bridge = Bridge(hostname, port)
     
-    from threading import Thread
-    global thread
     thread = Thread(target=asyncore.loop)
     getattr(thread, 'setDaemon', lambda x : None)(True)
     thread.start()

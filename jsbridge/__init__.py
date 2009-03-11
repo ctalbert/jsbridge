@@ -15,7 +15,7 @@
 # 
 # The Initial Developer of the Original Code is
 # Mikeal Rogers.
-# Portions created by the Initial Developer are Copyright (C) 2008
+# Portions created by the Initial Developer are Copyright (C) 2008 -2009
 # the Initial Developer. All Rights Reserved.
 # 
 # Contributor(s):
@@ -35,190 +35,125 @@
 # 
 # ***** END LICENSE BLOCK *****
 
-import sys
-import optparse
 import socket
 import os
+import copy
 from time import sleep
 
 import mozrunner
-import simplesettings
 
 import network
 from jsobjects import JSObject
-import global_settings
 
 settings_env = 'JSBRIDGE_SETTINGS_FILE'
 
 back_channel = None
 
-def getBrowserWindow():
-    return JSObject(network.bridge, "Components.classes['@mozilla.org/appshell/window-mediator;1'].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow('')")
+parent = os.path.abspath(os.path.dirname(__file__))
+
+window_string = "Components.classes['@mozilla.org/appshell/window-mediator;1'].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow('')"
+
+class JSBridgeCLI(mozrunner.CLI):
     
-def getPreferencesWindow():
-    bridge = JSObject(network.bridge, "openPreferences()")
+    parser_options = copy.copy(mozrunner.CLI.parser_options)
+    parser_options[('-D', '--debug',)] = dict(dest="debug", 
+                                             action="store_true",
+                                             help="Install debugging plugins.", 
+                                             metavar="JSBRIDGE_DEBUG",
+                                             default=False )
+    parser_options[('-s', '--shell',)] = dict(dest="shell", 
+                                             action="store_true",
+                                             help="Start a Python shell",
+                                             metavar="JSBRIDGE_SHELL",
+                                             default=False )
+    parser_options[('-u', '--usecode',)] = dict(dest="usecode", action="store_true",
+                                               help="Use code module instead of iPython",
+                                               default=False)
+    parser_options[('-P', '--port')] = dict(dest="port", default="24242",
+                                            help="TCP port to run jsbridge on.")
+    
+    debug_plugins = [os.path.join(parent, 'xpi', 'xush-0.2-fx.xpi')]
+    
+    def get_profile(self, *args, **kwargs):
+        if self.options.debug:
+            kwargs.setdefault('preferences', 
+                              {}).update({'extensions.checkCompatibility':False})
+        profile = super(JSBridgeCLI, self).get_profile(*args, **kwargs)
+        profile.install_plugin(os.path.join(parent, 'extension'))
+        if self.options.debug:
+            for p in self.debug_plugins:
+                profile.install_plugin(p)
+        return profile
+        
+    def get_runner(self, *args, **kwargs):
+        runner = super(JSBridgeCLI, self).get_runner(*args, **kwargs)
+        if self.options.debug:
+            runner.cmdargs.append('-jsconsole')
+        return runner
+        
+    def run(self):
+        runner = self.parse_and_get_runner()
+        runner.start()
+        self.start_jsbridge_network()
+        if self.options.shell:
+            self.start_shell(runner)
+        else:
+            try:
+                runner.wait()
+            except KeyboardInterrupt:
+                runner.stop()
+    
+    def start_shell(self, runner):
+        try:
+            import IPython
+        except:
+            IPython = None
+        bridge = JSObject(self.bridge, window_string)
+        
+        if IPython is None or self.options.usecode:
+            import code
+            code.interact(local={"bridge":bridge, 
+                                 "getBrowserWindow":lambda : getBrowserWindow(self.bridge),
+                                 "back_channel":self.back_channel,
+                                 })
+        else:
+            from IPython.Shell import IPShellEmbed
+            ipshell = IPShellEmbed([])
+            ipshell(local_ns={"bridge":bridge, 
+                              "getBrowserWindow":lambda : getBrowserWindow(self.bridge),
+                              "back_channel":self.back_channel,
+                              })
+        runner.stop()
+        
+    def start_jsbridge_network(self, timeout=10):
+        port = int(self.options.port)
+        host = '127.0.0.1'
+        ttl = 0
+        while ttl < timeout:
+            sleep(.25)
+            try:
+                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                s.connect((host, port))
+                s.close()
+                break
+            except socket.error:
+                pass
+        self.back_channel, self.bridge = network.create_network(host, port)
+
+def cli():
+    JSBridgeCLI().run()
+
+
+def getBrowserWindow(bridge):
+    return JSObject(bridge, "Components.classes['@mozilla.org/appshell/window-mediator;1'].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow('')")
+    
+def getPreferencesWindow(bridge):
+    bridge = JSObject(bridge, "openPreferences()")
     sleep(1)
     return bridge
-    
-def ipython_shell(locals_dict):
-    from IPython.Shell import IPShellEmbed
-    ipshell = IPShellEmbed()
-    ipshell(local_ns=locals_dict)
-    
-def code_shell(locals_dict):
-    import code
-    code.interact(local=locals_dict)    
-    
-def start_moz(moz, timeout=10):
-    if not settings.has_key('JSBRIDGE_REPL_HOST'):
-        settings['JSBRIDGE_REPL_HOST'] = 'localhost:24242'
-    host, port = settings['JSBRIDGE_REPL_HOST'].split(':')
-    port = int(port)
-    
-    moz.start()
-    print 'Started ', moz.command
-    ttl = 0
-    while ttl < timeout:
-        sleep(.25)
-        try:
-            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            s.connect((host, port))
-            s.close()
-            break
-        except socket.error:
-            pass
-    network.create_network(host, port)
-    
-def start_from_settings(settings, timeout=10):
-    """Start the jsbridge from a setings dict"""
-    if settings['JSBRIDGE_START_FIREFOX']:
-        moz = mozrunner.get_moz_from_settings(settings)
-        settings['moz'] = moz
-        start_moz(moz, timeout)
-        
-    else:
-        moz = None
-        if not settings.has_key('JSBRIDGE_REPL_HOST'):
-            settings['JSBRIDGE_REPL_HOST'] =  'localhost:24242'
-        host, port = settings['JSBRIDGE_REPL_HOST'].split(':')
-        port = int(port)
-        network.create_network(host, port)
-    return moz
 
 
-def set_debug(settings):
-    
-    module_path = global_settings.module_path   
-    settings['MOZILLA_PLUGINS'] += [os.path.join(module_path, 'xpi',
-                                        'javascript_debugger-0.9.87.4-fx+tb+sb+sm.xpi'),
-                                    # os.path.join(module_path, 'xpi', 'firebug-1.4.0a3.xpi'),
-                                    # os.path.join(module_path, 'xpi', 'chromebug-0.5.0a1.xpi'),
-                                    ]
-    settings['MOZILLA_CMD_ARGS'] += ['-jsconsole', # '-chrome', 
-    #                                      'chrome://chromebug/content/chromebug.xul', 
-    #                                      '-p', 'chromebug', '-firefox'
-                                     ]
-    settings['MOZILLA_PREFERENCES']['extensions.checkCompatibility'] = False                                 
-    return settings 
 
-def get_settings(settings_path=None):
-    if settings_path is not None:
-        settings_path = os.path.abspath(os.path.expanduser(settings_path))
-        os.environ[settings_env] = settings_path
-        
-    settings = simplesettings.initialize_settings(global_settings, sys.modules[__name__],     
-                                                  local_env_variable=settings_env)
-    
-    if settings.has_key('MOZILLA_PLUGINS'):           
-        settings['MOZILLA_PLUGINS'].append(os.path.join(os.path.abspath(os.path.dirname(__file__)), 'extension'))
-    else:
-        settings['MOZILLA_PLUGINS'] = [os.path.join(os.path.abspath(os.path.dirname(__file__)), 'extension')]
-    return settings
-    
-def start(settings=None, start_firefox=False):
-    if settings is None:
-        settings = get_settings()
-    if start_firefox:
-        settings['JSBRIDGE_START_FIREFOX'] = True
-    moz = start_from_settings(settings)
-    return moz
 
-parser = optparse.OptionParser()
-parser.add_option("-s", "--settings", dest="settings",
-                  help="Settings file for jsbridge.", metavar="JSBRIDGE_SETTINGS_FILE")
-parser.add_option("-b", "--binary", dest="binary",
-                  help="Binary path.", metavar=None)
-parser.add_option("-d", "--default-profile", dest="default-profile",
-                  help="Default profile path.", metavar=None)
-parser.add_option('-l', "--launch", dest="launch", action="store_true",
-                  help="Launch a new firefox instance.", metavar=None)
-parser.add_option("-z", "--debug",
-                  action="store_true", dest="debug", default=False,
-                  help="Run with firebug, chromebug, venkman, and jsconsole")
-parser.add_option("-a", "--showall", 
-                  action="store_true", dest="showall", default=False,
-                  help="Show all back_channel logger output.")
 
-def cli(shell=True, parser=parser, block=True, options=None):    
-    """Command line interface for jsbridge."""
-    if options is None:
-        (options, args) = parser.parse_args()
-    settings_path = getattr(options, 'settings', None)
-    settings = get_settings(settings_path)
-    
-    option_overrides = [('binary', 'MOZILLA_BINARY',),
-                        ('profile', 'MOZILLA_PROFILE',),
-                        ('default-profile', 'MOZILLA_DEFAULT_PROFILE',),
-                        ('host', 'JSBRIDGE_REPL_HOST',),
-                        ('launch', 'JSBRIDGE_START_FIREFOX',),
-                       ]
 
-    for opt, override in option_overrides:
-        if getattr(options, opt, None) is not None:
-            settings[override] = getattr(options, opt)
-    
-    if options.debug is True:
-        set_debug(settings)
-    
-    if options.showall:
-        import events
-        def showall(e, result):
-            print(e+": "+repr(result))
-        events.add_global_listener(showall)
-    
-    moz = start(settings)
-    
-    if block:
-        if shell:
-            try:
-                import IPython
-            except:
-                IPython = None    
-            if IPython is not None and '--usecode' not in sys.argv:
-                sys.argv = sys.argv[:1]
-                bridge = JSObject(network.bridge, "Components.classes['@mozilla.org/appshell/window-mediator;1'].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow('')")
-                ipython_shell({'bridge':bridge, 
-                               'getBrowserWindow':getBrowserWindow, 'getPreferencesWindow':getPreferencesWindow})#locals())
-            else:
-                code_shell({'bridge':bridge, 'getBrowserWindow':getBrowserWindow, 'getPreferencesWindow':getPreferencesWindow})
-            wait_function = None
-        elif moz:
-            wait_function = lambda : moz.wait()
-        else:
-            def wait_function():
-                while 1:
-                    sleep(.25)
-                    
-        if wait_function:
-            try:
-                wait_function()
-            except KeyboardInterrupt:
-                pass
-        
-        if moz:
-            try:
-                moz.stop()
-            except:
-                pass
-    else:
-        return moz
