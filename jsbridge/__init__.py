@@ -42,12 +42,11 @@ from time import sleep
 
 import mozrunner
 
-import network
+from network import Bridge, BackChannel, create_network
 from jsobjects import JSObject
 
 settings_env = 'JSBRIDGE_SETTINGS_FILE'
 
-back_channel = None
 
 parent = os.path.abspath(os.path.dirname(__file__))
 
@@ -108,18 +107,18 @@ class JSBridgeCLI(mozrunner.CLI):
             import IPython
         except:
             IPython = None
-        bridge = JSObject(self.bridge, window_string)
+        jsobj = JSObject(self.bridge, window_string)
         
         if IPython is None or self.options.usecode:
             import code
-            code.interact(local={"bridge":bridge, 
+            code.interact(local={"jsobj":jsobj, 
                                  "getBrowserWindow":lambda : getBrowserWindow(self.bridge),
                                  "back_channel":self.back_channel,
                                  })
         else:
             from IPython.Shell import IPShellEmbed
             ipshell = IPShellEmbed([])
-            ipshell(local_ns={"bridge":bridge, 
+            ipshell(local_ns={"jsobj":jsobj, 
                               "getBrowserWindow":lambda : getBrowserWindow(self.bridge),
                               "back_channel":self.back_channel,
                               })
@@ -138,7 +137,7 @@ class JSBridgeCLI(mozrunner.CLI):
                 break
             except socket.error:
                 pass
-        self.back_channel, self.bridge = network.create_network(host, port)
+        self.back_channel, self.bridge = create_network(host, port)
 
 def cli():
     JSBridgeCLI().run()
@@ -147,10 +146,6 @@ def cli():
 def getBrowserWindow(bridge):
     return JSObject(bridge, "Components.classes['@mozilla.org/appshell/window-mediator;1'].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow('')")
     
-def getPreferencesWindow(bridge):
-    bridge = JSObject(bridge, "openPreferences()")
-    sleep(1)
-    return bridge
 
 
 
