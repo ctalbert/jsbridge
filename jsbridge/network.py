@@ -223,12 +223,12 @@ class Bridge(Telnet):
                 self.fire_callbacks(obj)
                 self.sbuffer = self.sbuffer[index:]
         
-class BridgeBackChannel(Bridge):
+class BackChannel(Bridge):
     
     bridge_type = "backchannel"
     
     def __init__(self, *args, **kwargs):
-        super(BridgeBackChannel, self).__init__(*args, **kwargs)
+        super(BackChannel, self).__init__(*args, **kwargs)
         self.uuid_listener_index = {}
         self.event_listener_index = {}
         self.global_listeners = []
@@ -237,11 +237,11 @@ class BridgeBackChannel(Bridge):
         """Handle all callback fireing on json objects pulled from the data stream."""
         self.fire_event(**dict([(str(key), value,) for key, value in obj.items()]))
 
-    def add_listener(callback, uuid=None, event=None):
+    def add_listener(callback, uuid=None, eventType=None):
         if uuid is not None:
             self.uuid_listener_index.setdefault(uuid, []).append(callback)
         if event is not None:
-            self.event_listener_index.setdefault(event, []).append(callback)
+            self.event_listener_index.setdefault(eventType, []).append(callback)
 
     def add_global_listener(callback):
         self.global_listeners.append(callback)
@@ -256,10 +256,10 @@ class BridgeBackChannel(Bridge):
                 callback(result)
         for listener in self.global_listeners:
             listener(eventType, result)
-
+ 
 def create_network(hostname, port):
     
-    back_channel = BridgeBackChannel(hostname, port)
+    back_channel = BackChannel(hostname, port)
     bridge = Bridge(hostname, port)
     
     thread = Thread(target=asyncore.loop)

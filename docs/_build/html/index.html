@@ -1,0 +1,203 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>jsbridge &#8212; Python to JavaScript bridge interface &mdash; jsbridge v2.0a1 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '2.0a1',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="top" title="jsbridge v2.0a1 documentation" href="" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li><a href="">jsbridge v2.0a1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  
+  <div class="section" id="module-jsbridge">
+<h1><tt class="xref docutils literal"><span class="pre">jsbridge</span></tt> &#8212; Python to JavaScript bridge interface<a class="headerlink" href="#module-jsbridge" title="Permalink to this headline">¶</a></h1>
+<dl class="attribute">
+<dt id="jsbridge.extension_path">
+<!--[jsbridge.extension_path]--><tt class="descclassname">jsbridge.</tt><tt class="descname">extension_path</tt><a class="headerlink" href="#jsbridge.extension_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Absolute path to the jsbridge XULRunner extension directory.</p>
+<p>This should be used by mozrunner when starting XULRunner applications:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">mozrunner</span>
+
+<span class="n">profile</span> <span class="o">=</span> <span class="n">mozrunner</span><span class="o">.</span><span class="n">FirefoxProfile</span><span class="p">(</span><span class="n">plugins</span><span class="o">=</span><span class="p">[</span><span class="n">jsbridge</span><span class="o">.</span><span class="n">extension_path</span><span class="p">])</span>
+<span class="n">runner</span> <span class="o">=</span> <span class="n">mozrunner</span><span class="o">.</span><span class="n">FirefoxRunner</span><span class="p">(</span><span class="n">profile</span><span class="o">=</span><span class="n">profile</span><span class="p">,</span> <span class="n">cmdargs</span><span class="o">=</span><span class="p">[</span><span class="s">&quot;-jsbridge&quot;</span><span class="p">,</span> <span class="s">&quot;24242&quot;</span><span class="p">])</span>
+<span class="n">runner</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="jsbridge.create_network">
+<!--[jsbridge.create_network]--><tt class="descclassname">jsbridge.</tt><tt class="descname">create_network</tt><big>(</big><em>host</em>, <em>port</em><big>)</big><a class="headerlink" href="#jsbridge.create_network" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a <a title="jsbridge.BackChannel" class="reference internal" href="#jsbridge.BackChannel"><tt class="xref docutils literal"><span class="pre">BackChannel</span></tt></a> instance and a <a title="jsbridge.Bridge" class="reference internal" href="#jsbridge.Bridge"><tt class="xref docutils literal"><span class="pre">Bridge</span></tt></a> instance
+for the given host and port configuration:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">back_channel</span><span class="p">,</span> <span class="n">bridge</span> <span class="o">=</span> <span class="n">create_network</span><span class="p">(</span><span class="s">&quot;127.0.0.1&quot;</span><span class="p">,</span> <span class="mf">24242</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="jsbridge.wait_and_create_network">
+<!--[jsbridge.wait_and_create_network]--><tt class="descclassname">jsbridge.</tt><tt class="descname">wait_and_create_network</tt><big>(</big><em>host</em>, <em>port</em><span class="optional">[</span>, <em>timeout</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#jsbridge.wait_and_create_network" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wait for the the given host/port to become available for connection
+or <em>timeout</em> and then run <a title="jsbridge.create_network" class="reference internal" href="#jsbridge.create_network"><tt class="xref docutils literal"><span class="pre">create_network()</span></tt></a>.</p>
+<p><em>host</em> and <em>port</em> are the values to be passed to <a title="jsbridge.create_network" class="reference internal" href="#jsbridge.create_network"><tt class="xref docutils literal"><span class="pre">create_network()</span></tt></a>.</p>
+<p>Default <em>timeout</em> is 10. <em>timeout</em> defines wait threshold in seconds.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="jsbridge.Bridge">
+<!--[jsbridge.Bridge]-->class <tt class="descclassname">jsbridge.</tt><tt class="descname">Bridge</tt><big>(</big><em>host</em>, <em>port</em><big>)</big><a class="headerlink" href="#jsbridge.Bridge" title="Permalink to this definition">¶</a></dt>
+<dd><p>Python to JavaScript TCP interface.</p>
+<p><em>host</em> and <em>port</em> are string and integer values respectively.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="jsbridge.BackChannel">
+<!--[jsbridge.BackChannel]-->class <tt class="descclassname">jsbridge.</tt><tt class="descname">BackChannel</tt><big>(</big><em>host</em>, <em>port</em><big>)</big><a class="headerlink" href="#jsbridge.BackChannel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Back channel callback TCP  interface.</p>
+<p><em>host</em> and <em>port</em> are string and integer values respectively.</p>
+<dl class="method">
+<dt id="jsbridge.BackChannel.add_listener">
+<!--[jsbridge.BackChannel.add_listener]--><tt class="descname">add_listener</tt><big>(</big><em>callback</em><span class="optional">[</span>, <em>uuid</em><span class="optional">[</span>, <em>eventType</em><span class="optional">]</span><span class="optional">]</span><big>)</big><a class="headerlink" href="#jsbridge.BackChannel.add_listener" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Add listener for events of a specified uuid or eventType.</p>
+<p>Any callabale can be used for <em>callback</em> argument. Should accept a single argument
+the result object.</p>
+<p>Callbacks can be specific to an individual event <em>uuid</em> or to all events of a given
+<em>eventType</em>.</p>
+<dl class="method">
+<dt id="jsbridge.BackChannel.add_global_listener">
+<!--[jsbridge.BackChannel.add_global_listener]--><tt class="descname">add_global_listener</tt><big>(</big><em>callback</em><big>)</big><a class="headerlink" href="#jsbridge.BackChannel.add_global_listener" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<p>Add a listener to all events.</p>
+<p>Any callbable can be used as <em>callback</em>, should accept two positional arguments;
+<cite>eventType</cite> and <cite>result</cite>.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="jsbridge.JSObject">
+<!--[jsbridge.JSObject]-->class <tt class="descclassname">jsbridge.</tt><tt class="descname">JSObject</tt><big>(</big><em>bridge</em>, <em>name</em><big>)</big><a class="headerlink" href="#jsbridge.JSObject" title="Permalink to this definition">¶</a></dt>
+<dd><p>Python representation of a live JavaScript object.</p>
+<p>Requires an instance of <a title="jsbridge.Bridge" class="reference internal" href="#jsbridge.Bridge"><tt class="xref docutils literal"><span class="pre">Bridge</span></tt></a> and a string of JavaScript to resolve the
+object on the other side of the bridge.</p>
+<p>Once you have a <a title="jsbridge.JSObject" class="reference internal" href="#jsbridge.JSObject"><tt class="xref docutils literal"><span class="pre">JSObject</span></tt></a> instance you can treat it like a normal Python object
+and all attribute set/get operations and function calls will happen seamlessly
+through the bridge:</p>
+<blockquote>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">runner</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">back_channel</span><span class="p">,</span> <span class="n">bridge</span> <span class="o">=</span> <span class="n">wait_and_create_network</span><span class="p">(</span><span class="s">&quot;127.0.0.1&quot;</span><span class="p">,</span> <span class="mf">24242</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">window_string</span> <span class="o">=</span> <span class="s">&quot;Components.classes[&#39;@mozilla.org/appshell/window-mediator;1&#39;].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow(&#39;&#39;)&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">browser_window</span> <span class="o">=</span> <span class="n">JSObject</span><span class="p">(</span><span class="n">bridge</span><span class="p">,</span> <span class="n">window_string</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">browser_window</span><span class="o">.</span><span class="n">title</span>
+<span class="go">u&quot;Welcome to Firefox&quot;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">browser_window</span><span class="o">.</span><span class="n">title</span> <span class="o">=</span> <span class="s">&quot;Remember; no matter where you go, there you are. - B. Banzai&quot;</span>
+</pre></div>
+</div>
+</blockquote>
+</dd></dl>
+
+<dl class="class">
+<dt id="jsbridge.CLI">
+<!--[jsbridge.CLI]-->class <tt class="descclassname">jsbridge.</tt><tt class="descname">CLI</tt><a class="headerlink" href="#jsbridge.CLI" title="Permalink to this definition">¶</a></dt>
+<dd><p>Command Line Interface.</p>
+<p>Inherits from <tt class="xref docutils literal"><span class="pre">mozrunner.CLI</span></tt> and overrides relevant methods to start jsbridge.</p>
+<p>Also adds new command line options to for Python shell and debug modes.</p>
+</dd></dl>
+
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<p>Starting jsbridge in your own script:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">import</span> <span class="nn">mozrunner</span>
+<span class="kn">import</span> <span class="nn">jsbridge</span>
+
+<span class="n">profile</span> <span class="o">=</span> <span class="n">mozrunner</span><span class="o">.</span><span class="n">FirefoxProfile</span><span class="p">(</span><span class="n">plugins</span><span class="o">=</span><span class="p">[</span><span class="n">jsbridge</span><span class="o">.</span><span class="n">extension_path</span><span class="p">])</span>
+<span class="n">runner</span> <span class="o">=</span> <span class="n">mozrunner</span><span class="o">.</span><span class="n">FirefoxRunner</span><span class="p">(</span><span class="n">profile</span><span class="o">=</span><span class="n">profile</span><span class="p">,</span> <span class="n">cmdargs</span><span class="o">=</span><span class="p">[</span><span class="s">&quot;-jsbridge&quot;</span><span class="p">,</span> <span class="s">&quot;24242&quot;</span><span class="p">])</span>
+<span class="n">runner</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+
+<span class="n">back_channel</span><span class="p">,</span> <span class="n">bridge</span> <span class="o">=</span> <span class="n">wait_and_create_network</span><span class="p">(</span><span class="s">&quot;127.0.0.1&quot;</span><span class="p">,</span> <span class="mf">24242</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href=""><tt class="docutils literal"><span class="pre">jsbridge</span></tt> &#8212; Python to JavaScript bridge interface</a><ul>
+<li><a class="reference external" href="#examples">Examples</a></li>
+</ul>
+</li>
+</ul>
+
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/index.txt">Show Source</a></li>
+            </ul>
+          <h3>Quick search</h3>
+            <form class="search" action="search.html" method="get">
+              <input type="text" name="q" size="18" /> <input type="submit" value="Go" />
+              <input type="hidden" name="check_keywords" value="yes" />
+              <input type="hidden" name="area" value="default" />
+            </form>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li><a href="">jsbridge v2.0a1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2009, Mikeal Rogers &lt;mikeal.rogers@gmail.com&gt;.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.5.1.
+    </div>
+  </body>
+</html>

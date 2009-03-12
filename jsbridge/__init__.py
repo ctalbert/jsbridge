@@ -47,10 +47,23 @@ from jsobjects import JSObject
 
 settings_env = 'JSBRIDGE_SETTINGS_FILE'
 
-
 parent = os.path.abspath(os.path.dirname(__file__))
+extension_path = os.path.join(parent, 'extension')
 
 window_string = "Components.classes['@mozilla.org/appshell/window-mediator;1'].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow('')"
+
+def wait_and_create_network(host, port, timeout=10):
+    ttl = 0
+    while ttl < timeout:
+        sleep(.25)
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.connect((host, port))
+            s.close()
+            break
+        except socket.error:
+            pass
+    return create_network(host, port)
 
 class JSBridgeCLI(mozrunner.CLI):
     
@@ -78,7 +91,7 @@ class JSBridgeCLI(mozrunner.CLI):
             kwargs.setdefault('preferences', 
                               {}).update({'extensions.checkCompatibility':False})
         profile = super(JSBridgeCLI, self).get_profile(*args, **kwargs)
-        profile.install_plugin(os.path.join(parent, 'extension'))
+        profile.install_plugin(extension_path)
         if self.options.debug:
             for p in self.debug_plugins:
                 profile.install_plugin(p)
@@ -127,21 +140,10 @@ class JSBridgeCLI(mozrunner.CLI):
     def start_jsbridge_network(self, timeout=10):
         port = int(self.options.port)
         host = '127.0.0.1'
-        ttl = 0
-        while ttl < timeout:
-            sleep(.25)
-            try:
-                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                s.connect((host, port))
-                s.close()
-                break
-            except socket.error:
-                pass
-        self.back_channel, self.bridge = create_network(host, port)
+        self.back_channel, self.bridge = wait_and_create_network(host, port, timeout)
 
 def cli():
     JSBridgeCLI().run()
-
 
 def getBrowserWindow(bridge):
     return JSObject(bridge, "Components.classes['@mozilla.org/appshell/window-mediator;1'].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow('')")
