@@ -65,7 +65,7 @@ def wait_and_create_network(host, port, timeout=10):
             pass
     return create_network(host, port)
 
-class JSBridgeCLI(mozrunner.CLI):
+class CLI(mozrunner.CLI):
     
     parser_options = copy.copy(mozrunner.CLI.parser_options)
     parser_options[('-D', '--debug',)] = dict(dest="debug", 
@@ -90,7 +90,7 @@ class JSBridgeCLI(mozrunner.CLI):
         if self.options.debug:
             kwargs.setdefault('preferences', 
                               {}).update({'extensions.checkCompatibility':False})
-        profile = super(JSBridgeCLI, self).get_profile(*args, **kwargs)
+        profile = super(CLI, self).get_profile(*args, **kwargs)
         profile.install_plugin(extension_path)
         if self.options.debug:
             for p in self.debug_plugins:
@@ -98,7 +98,7 @@ class JSBridgeCLI(mozrunner.CLI):
         return profile
         
     def get_runner(self, *args, **kwargs):
-        runner = super(JSBridgeCLI, self).get_runner(*args, **kwargs)
+        runner = super(CLI, self).get_runner(*args, **kwargs)
         if self.options.debug:
             runner.cmdargs.append('-jsconsole')
         return runner
@@ -143,7 +143,7 @@ class JSBridgeCLI(mozrunner.CLI):
         self.back_channel, self.bridge = wait_and_create_network(host, port, timeout)
 
 def cli():
-    JSBridgeCLI().run()
+    CLI().run()
 
 def getBrowserWindow(bridge):
     return JSObject(bridge, "Components.classes['@mozilla.org/appshell/window-mediator;1'].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow('')")

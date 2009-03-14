@@ -237,22 +237,22 @@ class BackChannel(Bridge):
         """Handle all callback fireing on json objects pulled from the data stream."""
         self.fire_event(**dict([(str(key), value,) for key, value in obj.items()]))
 
-    def add_listener(callback, uuid=None, eventType=None):
+    def add_listener(self, callback, uuid=None, eventType=None):
         if uuid is not None:
             self.uuid_listener_index.setdefault(uuid, []).append(callback)
-        if event is not None:
+        if eventType is not None:
             self.event_listener_index.setdefault(eventType, []).append(callback)
 
-    def add_global_listener(callback):
+    def add_global_listener(self, callback):
         self.global_listeners.append(callback)
 
-    def fire_event(eventType=None, uuid=None, result=None, exception=None):
+    def fire_event(self, eventType=None, uuid=None, result=None, exception=None):
         event = eventType
         if uuid is not None and self.uuid_listener_index.has_key(uuid):
-            for callback in uuid_listener_index[uuid]:
+            for callback in self.uuid_listener_index[uuid]:
                 callback(result)
         if event is not None and self.event_listener_index.has_key(event):
-            for callback in event_listener_index[event]:
+            for callback in self.event_listener_index[event]:
                 callback(result)
         for listener in self.global_listeners:
             listener(eventType, result)
