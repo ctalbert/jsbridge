@@ -1,5 +1,5 @@
 :mod:`jsbridge` --- Python to JavaScript bridge interface
-============================================
+=========================================================
 
 .. module:: jsbridge
    :synopsis: Python to JavaScript bridge interface.

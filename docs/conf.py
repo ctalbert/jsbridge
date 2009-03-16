@@ -28,7 +28,8 @@ import sys, os
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = ["sphinx.ext.intersphinx"]
 
-intersphinx_mapping = {'http://docs.python.org/dev': None}
+intersphinx_mapping = {"http://docs.python.org/dev": None,
+                       "http://mozrunner.googlecode.com/svn/trunk/docs/_build/html/": None}
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
