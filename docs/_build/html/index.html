@@ -72,28 +72,28 @@ for the given host and port configuration:</p>
 <dd><p>Wait for the the given host/port to become available for connection
 or <em>timeout</em> and then run <a title="jsbridge.create_network" class="reference internal" href="#jsbridge.create_network"><tt class="xref docutils literal"><span class="pre">create_network()</span></tt></a>.</p>
 <p><em>host</em> and <em>port</em> are the values to be passed to <a title="jsbridge.create_network" class="reference internal" href="#jsbridge.create_network"><tt class="xref docutils literal"><span class="pre">create_network()</span></tt></a>.</p>
-<p>Default <em>timeout</em> is 10. <em>timeout</em> defines wait threshold in seconds.</p>
+<p>Default <em>timeout</em> is <cite>10</cite>. <em>timeout</em> defines wait threshold in seconds.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="jsbridge.Bridge">
 <!--[jsbridge.Bridge]-->class <tt class="descclassname">jsbridge.</tt><tt class="descname">Bridge</tt><big>(</big><em>host</em>, <em>port</em><big>)</big><a class="headerlink" href="#jsbridge.Bridge" title="Permalink to this definition">¶</a></dt>
 <dd><p>Python to JavaScript TCP interface.</p>
-<p><em>host</em> and <em>port</em> are string and integer values respectively.</p>
+<p><em>host</em> and <em>port</em> are <a title="(in Python v2.7)" class="reference external" href="http://docs.python.org/dev/library/functions.html#str"><tt class="xref docutils literal"><span class="pre">str()</span></tt></a> and <a title="(in Python v2.7)" class="reference external" href="http://docs.python.org/dev/library/functions.html#int"><tt class="xref docutils literal"><span class="pre">int()</span></tt></a> values respectively.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="jsbridge.BackChannel">
 <!--[jsbridge.BackChannel]-->class <tt class="descclassname">jsbridge.</tt><tt class="descname">BackChannel</tt><big>(</big><em>host</em>, <em>port</em><big>)</big><a class="headerlink" href="#jsbridge.BackChannel" title="Permalink to this definition">¶</a></dt>
-<dd><p>Back channel callback TCP  interface.</p>
+<dd><p>Back channel callback TCP interface.</p>
 <p><em>host</em> and <em>port</em> are string and integer values respectively.</p>
 <dl class="method">
 <dt id="jsbridge.BackChannel.add_listener">
 <!--[jsbridge.BackChannel.add_listener]--><tt class="descname">add_listener</tt><big>(</big><em>callback</em><span class="optional">[</span>, <em>uuid</em><span class="optional">[</span>, <em>eventType</em><span class="optional">]</span><span class="optional">]</span><big>)</big><a class="headerlink" href="#jsbridge.BackChannel.add_listener" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<p>Add listener for events of a specified uuid or eventType.</p>
-<p>Any callabale can be used for <em>callback</em> argument. Should accept a single argument
+<p>Add listener for events of a specified <em>uuid</em> or <em>eventType</em>.</p>
+<p>Any <a title="(in Python v2.7)" class="reference external" href="http://docs.python.org/dev/library/functions.html#callable"><tt class="xref docutils literal"><span class="pre">callable()</span></tt></a> can be used for <em>callback</em> argument. Should accept a single argument
 the result object.</p>
 <p>Callbacks can be specific to an individual event <em>uuid</em> or to all events of a given
 <em>eventType</em>.</p>
@@ -103,7 +103,7 @@ the result object.</p>
 <dd></dd></dl>
 
 <p>Add a listener to all events.</p>
-<p>Any callbable can be used as <em>callback</em>, should accept two positional arguments;
+<p>Any <a title="(in Python v2.7)" class="reference external" href="http://docs.python.org/dev/library/functions.html#callable"><tt class="xref docutils literal"><span class="pre">callable()</span></tt></a> can be used as <em>callback</em>, should accept two positional arguments;
 <cite>eventType</cite> and <cite>result</cite>.</p>
 </dd></dl>
 
@@ -111,7 +111,7 @@ the result object.</p>
 <dt id="jsbridge.JSObject">
 <!--[jsbridge.JSObject]-->class <tt class="descclassname">jsbridge.</tt><tt class="descname">JSObject</tt><big>(</big><em>bridge</em>, <em>name</em><big>)</big><a class="headerlink" href="#jsbridge.JSObject" title="Permalink to this definition">¶</a></dt>
 <dd><p>Python representation of a live JavaScript object.</p>
-<p>Requires an instance of <a title="jsbridge.Bridge" class="reference internal" href="#jsbridge.Bridge"><tt class="xref docutils literal"><span class="pre">Bridge</span></tt></a> and a string of JavaScript to resolve the
+<p>Requires an instance of <a title="jsbridge.Bridge" class="reference internal" href="#jsbridge.Bridge"><tt class="xref docutils literal"><span class="pre">Bridge</span></tt></a> and a <a title="(in Python v2.7)" class="reference external" href="http://docs.python.org/dev/library/functions.html#str"><tt class="xref docutils literal"><span class="pre">str()</span></tt></a> of JavaScript to resolve the
 object on the other side of the bridge.</p>
 <p>Once you have a <a title="jsbridge.JSObject" class="reference internal" href="#jsbridge.JSObject"><tt class="xref docutils literal"><span class="pre">JSObject</span></tt></a> instance you can treat it like a normal Python object
 and all attribute set/get operations and function calls will happen seamlessly

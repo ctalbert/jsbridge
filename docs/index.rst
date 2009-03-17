@@ -33,25 +33,25 @@
    
    *host* and *port* are the values to be passed to :func:`create_network`.
    
-   Default *timeout* is 10. *timeout* defines wait threshold in seconds.
+   Default *timeout* is `10`. *timeout* defines wait threshold in seconds.
       
 .. class:: Bridge(host, port)
 
    Python to JavaScript TCP interface.
    
-   *host* and *port* are string and integer values respectively.
+   *host* and *port* are :func:`str` and :func:`int` values respectively.
 
 .. class:: BackChannel(host, port)
 
-   Back channel callback TCP  interface.
+   Back channel callback TCP interface.
    
    *host* and *port* are string and integer values respectively.
    
    .. method:: add_listener(callback[, uuid[, eventType]])
    
-   Add listener for events of a specified uuid or eventType.
+   Add listener for events of a specified *uuid* or *eventType*.
    
-   Any callabale can be used for *callback* argument. Should accept a single argument
+   Any :func:`callable` can be used for *callback* argument. Should accept a single argument
    the result object.
    
    Callbacks can be specific to an individual event *uuid* or to all events of a given 
@@ -61,14 +61,14 @@
    
    Add a listener to all events.
    
-   Any callbable can be used as *callback*, should accept two positional arguments; 
+   Any :func:`callable` can be used as *callback*, should accept two positional arguments; 
    `eventType` and `result`.
    
 .. class:: JSObject(bridge, name)
 
    Python representation of a live JavaScript object.
    
-   Requires an instance of :class:`Bridge` and a string of JavaScript to resolve the 
+   Requires an instance of :class:`Bridge` and a :func:`str` of JavaScript to resolve the 
    object on the other side of the bridge.
    
    Once you have a :class:`JSObject` instance you can treat it like a normal Python object 
