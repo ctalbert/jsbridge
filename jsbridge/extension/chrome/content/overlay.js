@@ -35,4 +35,6 @@
 // 
 // ***** END LICENSE BLOCK *****
 
-Components.utils.import('resource://jsbridge/modules/init.js')
+var __init = {}; Components.utils.import('resource://jsbridge/modules/init.js', __init);
+
+

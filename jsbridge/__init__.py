@@ -101,6 +101,7 @@ class CLI(mozrunner.CLI):
         runner = super(CLI, self).get_runner(*args, **kwargs)
         if self.options.debug:
             runner.cmdargs.append('-jsconsole')
+        runner.cmdargs += ['-jsbridge', self.options.port]
         return runner
         
     def run(self):

@@ -36,7 +36,7 @@
 // 
 // ***** END LICENSE BLOCK *****
 
-var EXPORTED_SYMBOLS = ["Server", "server", "AsyncRead", "Session", "sessions", "globalRegistry"];
+var EXPORTED_SYMBOLS = ["Server", "server", "AsyncRead", "Session", "sessions", "globalRegistry", "startServer"];
 
 var events = {}; Components.utils.import("resource://jsbridge/modules/events.js", events);
 
@@ -296,5 +296,9 @@ function log(msg) {
     dump(msg + '\n');
 }
 
-var server = new Server(24242)
-server.start()
+function startServer(port) {
+  var server = new Server(port)
+  server.start()
+}
+
+
