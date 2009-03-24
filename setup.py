@@ -41,7 +41,7 @@ desc = """Python to JavaScript bridge interface."""
 summ = """A powerful and extensible Python to JavaScript bridge interface."""
 
 PACKAGE_NAME = "jsbridge"
-PACKAGE_VERSION = "2.0a1"
+PACKAGE_VERSION = "2.0a2"
 
 setup(name=PACKAGE_NAME,
       version=PACKAGE_VERSION,
@@ -60,7 +60,7 @@ setup(name=PACKAGE_NAME,
         """,
       platforms =['Any'],
       install_requires = ['simplejson',
-                          'mozrunner >= 2.0a1',
+                          'mozrunner >= 2.0a2',
                           ],
       classifiers=['Development Status :: 4 - Beta',
                    'Environment :: Console',

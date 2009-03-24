@@ -38,6 +38,7 @@ jsbridge/extension/chrome.manifest
 jsbridge/extension/install.rdf
 jsbridge/extension/chrome/content/overlay.js
 jsbridge/extension/chrome/content/overlay.xul
+jsbridge/extension/components/cmdarg.js
 jsbridge/extension/resource/modules/events.js
 jsbridge/extension/resource/modules/init.js
 jsbridge/extension/resource/modules/json2.js

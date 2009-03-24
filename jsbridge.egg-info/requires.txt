@@ -1,2 +1,2 @@
 simplejson
-mozrunner >= 2.0a1
+mozrunner >= 2.0a2
