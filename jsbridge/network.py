@@ -47,7 +47,6 @@ try:
 except:
     import simplejson
 
-import events
 
 logger = logging.getLogger(__name__)
 

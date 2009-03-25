@@ -69,7 +69,7 @@ const jsbridgeHandler = {
         var server = {}; 
         Components.utils.import('resource://jsbridge/modules/server.js', server);
         server.startServer(parseInt(port));
-        dump(port);
+        // dump(port);
       } else {
         var server = {}; 
         Components.utils.import('resource://jsbridge/modules/server.js', server);
