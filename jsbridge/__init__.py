@@ -115,6 +115,8 @@ class CLI(mozrunner.CLI):
                 runner.wait()
             except KeyboardInterrupt:
                 runner.stop()
+                
+        runner.profile.cleanup()
     
     def start_shell(self, runner):
         try:
