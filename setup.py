@@ -41,7 +41,7 @@ desc = """Python to JavaScript bridge interface."""
 summ = """A powerful and extensible Python to JavaScript bridge interface."""
 
 PACKAGE_NAME = "jsbridge"
-PACKAGE_VERSION = "2.0a3"
+PACKAGE_VERSION = "2.0b1"
 
 setup(name=PACKAGE_NAME,
       version=PACKAGE_VERSION,
