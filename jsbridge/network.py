@@ -255,14 +255,17 @@ class BackChannel(Bridge):
                 callback(result)
         for listener in self.global_listeners:
             listener(eventType, result)
+
+thread = None
  
 def create_network(hostname, port):
     
     back_channel = BackChannel(hostname, port)
     bridge = Bridge(hostname, port)
-    
-    thread = Thread(target=asyncore.loop)
-    getattr(thread, 'setDaemon', lambda x : None)(True)
-    thread.start()
+    global thread
+    if not thread or not thread.isAlive():
+        thread = Thread(target=asyncore.loop)
+        getattr(thread, 'setDaemon', lambda x : None)(True)
+        thread.start()
     
     return back_channel, bridge
