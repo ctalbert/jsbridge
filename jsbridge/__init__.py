@@ -38,6 +38,7 @@
 import socket
 import os
 import copy
+import asyncore
 from time import sleep
 
 import mozrunner
@@ -55,7 +56,6 @@ window_string = "Components.classes['@mozilla.org/appshell/window-mediator;1'].g
 def wait_and_create_network(host, port, timeout=10):
     ttl = 0
     while ttl < timeout:
-        sleep(.25)
         try:
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.connect((host, port))
@@ -63,7 +63,20 @@ def wait_and_create_network(host, port, timeout=10):
             break
         except socket.error:
             pass
-    return create_network(host, port)
+        sleep(.25)
+        ttl += .25
+    
+    back_channel, bridge = create_network(host, port)
+    sleep(.5)
+    
+    while back_channel.registered is False:
+        back_channel.close()
+        bridge.close()
+        asyncore.socket_map = {}
+        sleep(1)
+        back_channel, bridge = create_network(host, port)
+    
+    return back_channel, bridge
 
 class CLI(mozrunner.CLI):
     
