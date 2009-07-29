@@ -162,7 +162,8 @@ class Bridge(Telnet):
     registered = False
     
     def __init__(self, *args, **kwargs):
-        Telnet.__init__(self, *args, **kwargs)  
+        Telnet.__init__(self, *args, **kwargs)
+        sleep(.1)
         self.connect(args)
     
     def handle_connect(self):
