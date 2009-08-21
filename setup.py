@@ -35,13 +35,19 @@
 #
 # ***** END LICENSE BLOCK *****
 
+import sys
 from setuptools import setup, find_packages
 
 desc = """Python to JavaScript bridge interface."""
 summ = """A powerful and extensible Python to JavaScript bridge interface."""
 
 PACKAGE_NAME = "jsbridge"
-PACKAGE_VERSION = "2.1"
+PACKAGE_VERSION = "2.2"
+
+requires = ['mozrunner >= 2.0a2']
+
+if not sys.version.startswith('2.6'):
+    requires.append('simplejson')
 
 setup(name=PACKAGE_NAME,
       version=PACKAGE_VERSION,
@@ -59,9 +65,7 @@ setup(name=PACKAGE_NAME,
           jsbridge = jsbridge:cli
         """,
       platforms =['Any'],
-      install_requires = ['simplejson',
-                          'mozrunner >= 2.0a2',
-                          ],
+      install_requires = requires,
       classifiers=['Development Status :: 4 - Beta',
                    'Environment :: Console',
                    'Intended Audience :: Developers',
