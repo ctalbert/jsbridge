@@ -53,7 +53,7 @@ extension_path = os.path.join(parent, 'extension')
 
 window_string = "Components.classes['@mozilla.org/appshell/window-mediator;1'].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow('')"
 
-def wait_and_create_network(host, port, timeout=10):
+def wait_and_create_network(host, port, timeout=30):
     ttl = 0
     while ttl < timeout:
         try:
@@ -65,6 +65,8 @@ def wait_and_create_network(host, port, timeout=10):
             pass
         sleep(.25)
         ttl += .25
+    if ttl == timeout:
+        raise Exception("Sorry, cannot connect to jsbridge extension")
     
     back_channel, bridge = create_network(host, port)
     sleep(.5)

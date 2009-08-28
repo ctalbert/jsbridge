@@ -264,7 +264,6 @@ class BackChannel(Bridge):
 thread = None
  
 def create_network(hostname, port):
-    
     back_channel = BackChannel(hostname, port)
     bridge = Bridge(hostname, port)
     global thread
