@@ -53,7 +53,9 @@ extension_path = os.path.join(parent, 'extension')
 
 window_string = "Components.classes['@mozilla.org/appshell/window-mediator;1'].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow('')"
 
-def wait_and_create_network(host, port, timeout=30):
+wait_to_create_timeout = 60
+
+def wait_and_create_network(host, port, timeout=wait_to_create_timeout):
     ttl = 0
     while ttl < timeout:
         try:
