@@ -1,0 +1,13 @@
+# Sphinx inventory version 1
+# Project: jsbridge
+# Version: 2.0a1
+jsbridge mod index.html
+jsbridge.extension_path attribute index.html
+jsbridge.Bridge class index.html
+jsbridge.CLI class index.html
+jsbridge.BackChannel.add_listener method index.html
+jsbridge.BackChannel.add_global_listener method index.html
+jsbridge.create_network function index.html
+jsbridge.JSObject class index.html
+jsbridge.BackChannel class index.html
+jsbridge.wait_and_create_network function index.html
