@@ -42,7 +42,7 @@ desc = """Python to JavaScript bridge interface."""
 summ = """A powerful and extensible Python to JavaScript bridge interface."""
 
 PACKAGE_NAME = "jsbridge"
-PACKAGE_VERSION = "2.3"
+PACKAGE_VERSION = "2.3.1"
 
 requires = ['mozrunner >= 2.0a2']
 
@@ -59,7 +59,7 @@ setup(name=PACKAGE_NAME,
       license='http://www.apache.org/licenses/LICENSE-2.0',
       packages=find_packages(exclude=['test']),
       include_package_data=True,
-      package_data = {'': ['*.js', '*.css', '*.html', '*.txt', '*.xpi', '*.rdf', '*.xul', '*.jsm', '*.xml' ],},
+      package_data = {'': ['*.js', '*.css', '*.html', '*.txt', '*.xpi', '*.rdf', '*.xul', '*.jsm', '*.xml' 'extension'],},
       entry_points="""
           [console_scripts]
           jsbridge = jsbridge:cli
