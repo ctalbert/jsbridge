@@ -1,1 +1,2 @@
 recursive-include jsbridge/extension *
+recursive-include jsbridge/xpi *
