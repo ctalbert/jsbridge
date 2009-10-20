@@ -42,7 +42,7 @@ desc = """Python to JavaScript bridge interface."""
 summ = """A powerful and extensible Python to JavaScript bridge interface."""
 
 PACKAGE_NAME = "jsbridge"
-PACKAGE_VERSION = "2.3.1"
+PACKAGE_VERSION = "2.3.3"
 
 requires = ['mozrunner >= 2.0a2']
 

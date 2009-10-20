@@ -147,6 +147,8 @@ class JSObjectEncoder(simplejson.JSONEncoder):
                 del markers[markerid]
 
 encoder = JSObjectEncoder()
+
+class JSBridgeDisconnectError(Exception): pass
         
 class Bridge(Telnet):
     
@@ -156,7 +158,7 @@ class Bridge(Telnet):
     events_list = []
 
     callbacks = {}
-    
+        
     bridge_type = "bridge"
     
     registered = False
@@ -169,12 +171,16 @@ class Bridge(Telnet):
     def handle_connect(self):
         self.register()
 
-    def run(self, _uuid, exec_string, interval=0, raise_exeption=True):
+    def run(self, _uuid, exec_string, interval=.2, raise_exeption=True):
         exec_string += '\r\n'
         self.send(exec_string)
         
         while _uuid not in self.callbacks.keys():
             sleep(interval)
+            try:
+                self.send(' ')
+            except socket.error:
+                raise JSBridgeDisconnectError("Connected disconnected.")
         
         callback = self.callbacks.pop(_uuid)
         if callback['result'] is False and raise_exeption is True:
