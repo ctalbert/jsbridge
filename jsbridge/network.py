@@ -178,7 +178,7 @@ class Bridge(Telnet):
         while _uuid not in self.callbacks.keys():
             sleep(interval)
             try:
-                self.send(' ')
+                self.send('')
             except socket.error:
                 raise JSBridgeDisconnectError("Connected disconnected.")
         
