@@ -83,7 +83,7 @@ def wait_and_create_network(host, port, timeout=wait_to_create_timeout):
     return back_channel, bridge
 
 class CLI(mozrunner.CLI):
-    
+
     parser_options = copy.copy(mozrunner.CLI.parser_options)
     parser_options[('-D', '--debug',)] = dict(dest="debug", 
                                              action="store_true",
@@ -122,7 +122,7 @@ class CLI(mozrunner.CLI):
         return runner
         
     def run(self):
-        runner = self.parse_and_get_runner()
+        runner = self.create_runner()
         runner.start()
         self.start_jsbridge_network()
         if self.options.shell:
