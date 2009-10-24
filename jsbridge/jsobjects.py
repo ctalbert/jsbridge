@@ -93,7 +93,7 @@ class JSObject(object):
             
         attributes = self._bridge_.describe(self._name_)['attributes']
         if name in attributes:
-            return self.__jsget__(self._name_+'.'+name)
+            return self.__jsget__(self._name_+'["'+name+'"]')
         else:
             raise AttributeError(name+" is undefined.")
     
