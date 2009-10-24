@@ -104,7 +104,14 @@ except:
 
 class JSObjectEncoder(simplejson.JSONEncoder):
     """Encoder that supports jsobject references by name."""
-    
+
+    def encode(self, o):
+        import jsobjects
+        if isinstance(o, jsobjects.JSObject):
+            return o._name_
+        else:
+            return simplejson.JSONEncoder.encode(self, o)
+
     def _iterencode(self, o, markers=None):
         import jsobjects
         if isinstance(o, jsobjects.JSObject):
