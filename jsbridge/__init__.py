@@ -20,6 +20,7 @@
 # 
 # Contributor(s):
 #  Mikeal Rogers <mikeal.rogers@gmail.com>
+#  Henrik Skupin <hskupin@mozilla.com>
 # 
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -39,12 +40,12 @@ import socket
 import os
 import copy
 import asyncore
+
 from time import sleep
-
-import mozrunner
-
 from network import Bridge, BackChannel, create_network
 from jsobjects import JSObject
+
+import mozrunner
 
 settings_env = 'JSBRIDGE_SETTINGS_FILE'
 
@@ -83,7 +84,8 @@ def wait_and_create_network(host, port, timeout=wait_to_create_timeout):
     return back_channel, bridge
 
 class CLI(mozrunner.CLI):
-    
+    """Command line interface."""
+
     parser_options = copy.copy(mozrunner.CLI.parser_options)
     parser_options[('-D', '--debug',)] = dict(dest="debug", 
                                              action="store_true",
@@ -122,7 +124,7 @@ class CLI(mozrunner.CLI):
         return runner
         
     def run(self):
-        runner = self.parse_and_get_runner()
+        runner = self.create_runner()
         runner.start()
         self.start_jsbridge_network()
         if self.options.shell:
