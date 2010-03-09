@@ -89,7 +89,7 @@ class CLI(mozrunner.CLI):
     parser_options = copy.copy(mozrunner.CLI.parser_options)
     parser_options[('-D', '--debug',)] = dict(dest="debug", 
                                              action="store_true",
-                                             help="Install debugging plugins.", 
+                                             help="Install debugging addons.", 
                                              metavar="JSBRIDGE_DEBUG",
                                              default=False )
     parser_options[('-s', '--shell',)] = dict(dest="shell", 
@@ -103,17 +103,17 @@ class CLI(mozrunner.CLI):
     parser_options[('-P', '--port')] = dict(dest="port", default="24242",
                                             help="TCP port to run jsbridge on.")
     
-    debug_plugins = [os.path.join(parent, 'xpi', 'xush-0.2-fx.xpi')]
+    debug_addons = [os.path.join(parent, 'xpi', 'xush-0.2-fx.xpi')]
     
     def get_profile(self, *args, **kwargs):
         if self.options.debug:
             kwargs.setdefault('preferences', 
                               {}).update({'extensions.checkCompatibility':False})
         profile = super(CLI, self).get_profile(*args, **kwargs)
-        profile.install_plugin(extension_path)
+        profile.install_addon(extension_path)
         if self.options.debug:
-            for p in self.debug_plugins:
-                profile.install_plugin(p)
+            for addon in self.debug_addons:
+                profile.install_addon(addon)
         return profile
         
     def get_runner(self, *args, **kwargs):
